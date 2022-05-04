@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.admingiftpricetype">
+
+	<select id="selectAll" parameterType="adminGiftPriceTypeVo" resultType="adminGiftPriceTypeVo">
+		select G_P_TYPE_NO, G_P_TYPE_PRICE from GIFTPRICETYPE
+		order by G_P_TYPE_NO desc
+	</select>
+	
+	<select id="checkDu" parameterType="int" resultType="int">
+		select count(G_P_TYPE_PRICE) from GIFTPRICETYPE where G_P_TYPE_PRICE = #{gPTypePrice}
+	</select>
+	
+	<insert id="insertGiftPriceType" parameterType="adminGiftPriceTypeVo" >
+		<selectKey keyProperty="gPTypeNo" resultType="int" order="BEFORE">
+			select giftPriceType_seq.nextval from dual
+		</selectKey>
+		insert into GIFTPRICETYPE(G_P_TYPE_NO, G_P_TYPE_PRICE)
+		values(#{gPTypeNo}, #{gPTypePrice})
+	</insert>
+	
+	<update id="updateGiftPriceType" parameterType="adminGiftPriceTypeVo">
+		update GIFTPRICETYPE
+		set G_P_TYPE_PRICE=#{gPTypePrice}
+		where G_P_TYPE_NO=#{gPTypeNo}
+	</update>
+	
+	<delete id="deleteGiftPriceType" parameterType="adminGiftPriceTypeVo">
+		delete from GIFTPRICETYPE
+		where G_P_TYPE_NO=#{gPTypeNo}
+	</delete>
+	
+</mapper>

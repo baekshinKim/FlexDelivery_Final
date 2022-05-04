@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.admineventcoupon">
+	
+	<sql id="editStart">
+		<if test="startDate>0">
+			,e_coupon_start_date=sysdate+#{startDate}
+		</if>
+	</sql>
+	
+	<sql id="editEnd">
+		<if test="endDate>0">
+			,e_coupon_end_date=sysdate+#{endDate}
+		</if>
+	</sql>
+	
+	<select id="selectAll" parameterType="adminEventCouponVo" resultType="adminEventCouponVo">
+		select E_COUPON_NO, E_COUPON_NAME, E_COUPON_START_DATE, E_COUPON_END_DATE,
+		E_COUPON_DC, E_COUPON_MIN from EVENTCOUPON
+		order by E_COUPON_NO desc
+	</select>
+	
+	<select id="checkDu" parameterType="string" resultType="int">
+		select count(E_COUPON_NAME) from EVENTCOUPON 
+		where E_COUPON_NAME like #{eCouponName}
+	</select>
+	
+	<insert id="insertEventCoupon" parameterType="adminEventCouponVo" >
+		<selectKey keyProperty="eCouponNo" resultType="int" order="BEFORE">
+			select EVENTCOUPON_seq.nextval from dual
+		</selectKey>
+		insert into EVENTCOUPON(E_COUPON_NO, E_COUPON_NAME, E_COUPON_START_DATE,
+		E_COUPON_END_DATE, E_COUPON_DC, E_COUPON_MIN)
+		values(#{eCouponNo}, #{eCouponName},sysdate+#{startDate},sysdate+#{endDate}, #{eCouponDc}, #{eCouponMin})
+	</insert>
+	
+	<update id="updateEventCoupon" parameterType="adminEventCouponVo">
+		update EVENTCOUPON
+		set E_COUPON_NAME=#{eCouponName},
+			E_COUPON_DC=#{eCouponDc},
+		 	E_COUPON_MIN=#{eCouponMin}
+		 	<include refid="editStart"></include>
+		 	<include refid="editEnd"></include>
+		where E_COUPON_NO=#{eCouponNo}
+	</update>
+	
+	<delete id="deleteEventCoupon"  parameterType="adminEventCouponVo">
+		delete from EVENTCOUPON
+		where E_COUPON_NO=#{eCouponNo}
+	</delete>
+	
+</mapper>

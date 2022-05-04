@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.ownerboard">
+	
+	
+	<sql id="searchWhere">
+		<where>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				and ${searchCondition} like '%' || #{searchKeyword} || '%'
+			</if>
+			and board_head =#{boardHead} and authority_no=4
+		</where>	
+	</sql>
+
+
+
+
+	<select id="selectAll" parameterType="ownerBoardSearchVo" resultType="ownerBoardVo">
+		select *
+		from
+		(
+		    select A.*, rownum as RNUM
+		    from
+		    (
+		        select board_no, board_title,board_regdate,board_thumbNail,board_head,authority_no, (sysdate-board_regdate)*24 as newImgTerm
+		        from board
+				<include refid="searchWhere" />	
+					        
+		        order by board_regdate desc
+		    )A
+		)
+		<![CDATA[
+		where RNUM > #{firstRecordIndex} 
+		and RNUM <= #{firstRecordIndex} + #{recordCountPerPage}
+		]]>
+	
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="ownerBoardSearchVo"
+		resultType="int">
+		select count(*) from board
+		<include refid="searchWhere"/>
+	
+	</select>
+	
+	
+	<select id="selectByNo" parameterType="int" resultType="ownerBoardVo">
+		select * from board where board_no=#{boardNo}
+	</select>
+	
+	
+	<select id="selectMainBoard" resultType="ownerBoardVo" parameterType="String">
+		select *
+		from( 
+		   select b.*,  (sysdate-b.board_regdate)*24 as newImgTerm from board b
+		   where b.board_head  = #{boardHead} and b.authority_no=4
+		   order by b.board_regdate desc
+		    ) 
+		<![CDATA[
+		where rownum<=6 ]]>
+	</select>
+</mapper>

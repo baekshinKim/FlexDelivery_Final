@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.ownerchart">
+	
+	<!--  지난주 주문 수 -->
+	<select id="selectLastWeekOrderCount" parameterType="int" resultType="map">
+					
+		SELECT TO_CHAR(b.dt, 'YYYY-MM-DD') AS ordersDay
+					     , NVL(SUM(a.ordersCount), 0) ordersCount
+					  FROM ( select count(*) ordersCount, to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD') as ordersDay from orders
+					where to_date(orders_date)+orders_duration/(24*60)  between trunc(sysdate-7,'IW') and trunc(sysdate-7,'IW')+7 and store_no=#{storeNo} and o_status_no=4
+					group by to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD')
+					order by to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD')
+					        ) a,
+					        <![CDATA[
+		                    ( SELECT  to_date(trunc(sysdate-7,'IW')) + LEVEL - 1 AS dt
+					            FROM dual 
+					         CONNECT BY LEVEL <= (to_date(trunc(sysdate-7,'IW'))+6 
+					                            - to_Date(trunc(sysdate-7,'IW')) + 1)
+					      ]]> 
+					        ) b 
+					  WHERE b.dt = a.ordersDay(+)
+					  GROUP BY TO_CHAR(b.dt, 'YYYY-MM-DD')
+					  ORDER BY TO_CHAR(b.dt, 'YYYY-MM-DD')
+	</select>
+	
+	<!--  이번주 주문 수 -->
+	<select id="selectThisWeekOrderCount" parameterType="int" resultType="map">
+			SELECT TO_CHAR(b.dt, 'YYYY-MM-DD') AS ordersDay
+			     , NVL(SUM(a.ordersCount), 0) ordersCount
+			  FROM ( select count(*) ordersCount, to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD') as ordersDay from orders
+			where to_date(orders_date)+orders_duration/(24*60)  between trunc(sysdate,'IW') and trunc(sysdate,'IW')+7 and store_no=#{storeNo} and o_status_no=4
+			group by to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD')
+			order by to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD')
+			        ) a
+			        <![CDATA[
+			      , ( SELECT  to_date(trunc(sysdate,'IW')) + LEVEL - 1 AS dt
+			            FROM dual 
+			         CONNECT BY LEVEL <= (to_date(trunc(sysdate,'IW'))+6 
+			                            - to_Date(trunc(sysdate,'IW')) + 1)
+			        ) b
+			        ]]> 
+			  WHERE b.dt = a.ordersDay(+)
+			  GROUP BY TO_CHAR(b.dt, 'YYYY-MM-DD')
+			  ORDER BY TO_CHAR(b.dt, 'YYYY-MM-DD')
+	</select>
+	
+	
+	<!--  지난주 주문 가격 -->
+	<select id="selectLastWeekOrderPrice" parameterType="int" resultType="map">
+			SELECT TO_CHAR(b.dt, 'YYYY-MM-DD') AS ordersDay
+			     , NVL(SUM(a.ordersTotalPrice), 0) ordersTotalPrice
+				  FROM ( select sum(orders_price) ordersTotalPrice, to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD') as ordersDay from orders
+				where to_date(orders_date)+orders_duration/(24*60)  between trunc(sysdate-7,'IW') and trunc(sysdate-7,'IW')+7 and store_no=#{storeNo} and o_status_no=4
+				group by to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD')
+				order by to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD')
+				        ) a,
+				       <![CDATA[
+	                    ( SELECT  to_date(trunc(sysdate-7,'IW')) + LEVEL - 1 AS dt
+				            FROM dual 
+				         CONNECT BY LEVEL <= (to_date(trunc(sysdate-7,'IW'))+6 
+				                            - to_Date(trunc(sysdate-7,'IW')) + 1)
+				        ) b 
+				       ]]> 
+				  WHERE b.dt = a.ordersDay(+)
+				  GROUP BY TO_CHAR(b.dt, 'YYYY-MM-DD')
+				  ORDER BY TO_CHAR(b.dt, 'YYYY-MM-DD')
+	</select>
+	
+	<!--  이번주 주문 가격 -->
+	<select id="selectThisWeekOrderPrice" parameterType="int" resultType="map">
+			
+		SELECT TO_CHAR(b.dt, 'YYYY-MM-DD') AS ordersDay
+			     , NVL(SUM(a.ordersTotalPrice), 0) ordersTotalPrice
+				  FROM ( select sum(orders_price) ordersTotalPrice, to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD') as ordersDay from orders
+				where to_date(orders_date)+orders_duration/(24*60)  between trunc(sysdate,'IW') and trunc(sysdate,'IW')+7 and store_no=#{storeNo} and o_status_no=4
+				group by to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD')
+				order by to_char(to_date(orders_date)+orders_duration/(24*60),'YYYY-MM-DD')
+				        ) a,
+				        <![CDATA[
+	                    ( SELECT  to_date(trunc(sysdate,'IW')) + LEVEL - 1 AS dt
+				            FROM dual 
+				         CONNECT BY LEVEL <= (to_date(trunc(sysdate,'IW'))+6 
+				                            - to_Date(trunc(sysdate,'IW')) + 1)
+				        ) b 
+				       ]]> 
+				  WHERE b.dt = a.ordersDay(+)
+				  GROUP BY TO_CHAR(b.dt, 'YYYY-MM-DD')
+				  ORDER BY TO_CHAR(b.dt, 'YYYY-MM-DD')
+	</select>
+	
+	
+	<!-- 베스트  주문 메뉴  -->
+	<select id="selectBestMenu" parameterType="int" resultType="map">
+			select A.* 
+			from(
+			select sum(o_detail_qty) as ordersMenuQty ,menu_name as ordersMenuName from jaordersbestmenuview
+			         where store_no=#{storeNo} and o_status_no=4 and to_date(orders_date)+orders_duration/(24*60) >= add_months(sysdate,-1)
+			         group by menu_name
+			            order by ordersMenuQty desc
+			) A
+			<![CDATA[
+			where rownum <=5
+			]]> 
+	</select>
+	
+	<select id="selectOrdersFiveStatusNo" parameterType="map" resultType="map">
+			select nvl(sum(a.ordersCount),0) as ordersCount, b.oStatusNo from 
+				(select count(*) as ordersCount, ordersDayDummy, o_status_no
+				from 
+				(select o_status_no,
+				CASE o_status_no when 1  THEN orders_pay_end_date
+				                WHEN 2 THEN orders_date
+				                WHEN 3 THEN orders_date
+				                when 4 then to_date(orders_date)+orders_duration/(24*60)
+				                when 5 THEN orders_pay_end_date
+				                else orders_pay_end_date
+				END as ordersDayDummy, store_no
+				from orders 
+				)
+				<![CDATA[
+				where  #{startDay} <= ordersDayDummy and ordersDayDummy < to_Date(#{endDay})+1 and store_no=#{storeNo}
+				]]> 
+				group by o_status_no, ordersDayDummy
+				
+				) a,
+				(select level as oStatusNo from dual
+				<![CDATA[
+				connect by level >=1 and level<=5
+				]]> 
+				) b
+				where a.o_status_no(+) = b.oStatusNo
+				group by b.oStatusNo
+				order by b.oStatusNo
+		
+	</select>
+	
+	
+	
+	
+	<select id="selectMainStoreFour" resultType="map">
+		select A.*, rownum from
+			(
+			select sum(nvl(o.orders_price,0)) as ordersPrice , o.store_no, s.store_name,s.store_logo
+			from orders o join stores s
+			on s.store_no=o.store_no
+			<![CDATA[
+			where s.a_agree_no=3 and  o.o_status_no=4 and o.orders_date + o.orders_duration/(24*60) >= TRUNC(sysdate,'MM')
+			]]>
+			group by o.store_no, s.store_name,s.store_logo
+			order by ordersPrice desc
+			) A
+			<![CDATA[
+			where rownum <=4
+			]]>
+	</select>
+</mapper>

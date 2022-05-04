@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.owner">
+	<select id="selectPwd" parameterType="String" resultType="String">
+		select owner_pwd from owner where owner_id=#{userid} and owner_outdate is null
+	</select>
+	
+	<select id="selectOwner" parameterType="String" resultType="ownerVo">
+		select * from owner where owner_id=#{userid}	
+	</select>
+	
+	<insert id="insertowner" parameterType="ownerVo">
+		<selectKey keyProperty="ownerNo" resultType="int" order="BEFORE">
+			select owner_seq.nextval from dual
+		</selectKey>
+		insert into owner(owner_No, owner_Name, owner_Id, owner_Pwd,
+			owner_Hp1,owner_Hp2, owner_Hp3) 
+		values(#{ownerNo}, #{ownerName}, #{ownerId}, #{ownerPwd},
+			#{ownerHp1}, #{ownerHp2}, #{ownerHp3} )
+	</insert>
+	
+	
+	<select id="dupCheck" parameterType="string" resultType="int">
+		select count(*) from owner where owner_Id=#{ownerId}
+	</select>
+	
+	
+	<update id="withdrawOwner" parameterType="int">
+		update owner
+		set owner_outdate=sysdate 
+		where owner_no=#{ownerNo}
+	</update>
+	
+	
+	<update id="withdrawStore" parameterType="int">
+		update stores
+		set a_agree_no=8
+		where store_no=#{storeNo}
+	</update>
+	
+<!-- 	
+create or replace view jaOwnerAuthorityAllView
+    as
+        select  o.O_REGISTER_NO, o.A_AGREE_NO as RAGREENO , s.STORE_NO,
+                s.A_AGREE_NO  as SAGREENO, w.OWNER_NO, w.owner_id
+        from ownerRegister o full outer join stores s
+        on o.O_REGISTER_NO = s.O_REGISTER_NO and o.OWNER_NO = s.OWNER_NO
+            full join owner w 
+            on w.OWNER_NO = o.OWNER_NO;
+            
+          select * from  jaOwnerAuthorityAllView; -->
+ <!-- 권한 설정을 위한 뷰  -->
+
+
+	<select id="selectOwnerAuthorityAll"  parameterType="string" resultType="ownerAuthorityVo">
+		select * from jaOwnerAuthorityAllView
+		where owner_id = #{userid} and owner_outdate is null
+	</select>
+
+	
+	<update id="updateOwner" parameterType="ownerVo">
+		update owner
+		set owner_name=#{ownerName} , owner_hp1=#{ownerHp1}, owner_hp2=#{ownerHp2}, owner_hp3=#{ownerHp3}
+		where owner_id=#{ownerId}
+	</update>
+        
+     <select id="selectOwnerAuthorityCount" parameterType="map"  resultType="int">
+     	select count(*) from JAOWNERAUTHORITYALLVIEW
+		where SAgreeno =#{sAgreeNo} and rAgreeNo= #{rAgreeNo} and owner_id=#{userid}  and owner_outdate is null
+     </select>
+</mapper>

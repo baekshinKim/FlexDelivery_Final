@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberToday">
+	
+	<select id="selectMCategory" resultType="map">
+		select   A.M_CATEGORY_NO, A.M_CATEGORY_NAME, A.L_CATEGORY_NO, A.WEATHER_NO , rownum
+		from 
+		(
+			select m.M_CATEGORY_NO, M_CATEGORY_NAME, L_CATEGORY_NO,WEATHER_NO 
+			from 
+			mediumCategory m,storemainmenu s
+			where m.M_CATEGORY_NO = s.M_CATEGORY_NO
+			ORDER BY DBMS_RANDOM.RANDOM()
+		) A
+		where rownum=1
+	</select>
+	
+	
+	<select id="selectMCategoryStores" parameterType="map" resultType="map">
+	<if test='type == "all"'>
+		select *  from jaMCStoresListView
+	</if>
+	<if test='type == "some"'>
+		select store_name , store_no, menu_img  from jaMCStoresListView
+	</if>
+	
+		where store_outdate is null  and m_category_no=#{mCategoryNo} and s_status_no=2 and 
+   		 to_char(sysdate , 'd') != h_category_no+1 and a_agree_no=3  and location_no=#{locationNo}
+	</select>
+	
+	
+	
+	<select id="selectMenuRandomSix" parameterType="map" resultType="map">
+	select   A.menu_name, A.store_no , rownum
+		from 
+		(
+		select menu_name , store_no  from jaMCStoresListView
+			where store_outdate is null  and m_category_no=#{mCategoryNo} and s_status_no=2 and 
+   			 to_char(sysdate , 'd') != h_category_no+1 and a_agree_no=3  and location_no=#{locationNo}
+   			 ORDER BY DBMS_RANDOM.RANDOM()
+   		)A
+   	<![CDATA[
+   	where rownum<=6
+   	]]>
+	</select>
+</mapper>

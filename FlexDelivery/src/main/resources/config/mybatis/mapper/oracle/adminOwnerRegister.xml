@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminOwnerRegister">
+	<select id="registerList" resultType="adminOwnerRegisterVo">
+		select o_register_no, o_register_filename, o_register_original_filename, a_agree_no, owner_no,
+			   ownerregister_regdate, owner_name, owner_hp1, owner_hp2, owner_hp3, owner_regdate, authority_no
+		from hjOregistOwnerView
+	</select>
+	
+	<select id="registerDetail" parameterType="long" resultType="adminOwnerRegisterVo">
+		select o_register_no, o_register_filename, o_register_original_filename, a_agree_no, owner_no,
+			   ownerregister_regdate, owner_name, owner_hp1, owner_hp2, owner_hp3, owner_regdate, authority_no
+		from hjOregistOwnerView
+		where o_register_no = #{no}
+	</select>
+	
+	<update id="registerApproval" parameterType="long">
+		update ownerregister
+		set a_agree_no=3, ownerregister_regdate=sysdate
+		where o_register_no = #{no}
+	</update>
+	
+	<update id="ownerApproval" parameterType="int">
+		update owner
+		set authority_no=5
+		where owner_no = #{no}
+	</update>
+	
+		<update id="registerDeny" parameterType="long">
+		update ownerregister
+		set a_agree_no=4, ownerregister_regdate=sysdate
+		where o_register_no = #{no}
+	</update>	
+</mapper>

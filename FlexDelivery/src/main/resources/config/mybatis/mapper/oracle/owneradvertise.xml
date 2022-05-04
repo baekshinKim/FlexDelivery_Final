@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.owneradvertise">
+
+	
+	<!-- 
+	
+		create or replace view jaAdvertiseView
+		as
+	 	select p.*, e.storead_no, e.store_no, e.ad_validate, e.ad_pay_flag
+            , s.a_agree_no
+	     from advertise p, storead e, stores s 
+	     where p.ADVERTISE_NO=e.ADVERTISE_NO and e.STORE_NO=s.STORE_NO;
+	 -->
+	 <!-- advertise , storeAd , stores 합친 뷰 -->
+	  <select id="selectAdvertieseView" parameterType="int" resultType="ownerAdvertiseAllVo">
+			select * from jaAdvertiseView
+		<![CDATA[
+			where store_no=#{storeNo} and ad_validate > sysdate and a_agree_no=3 and ad_pay_flag='Y'
+	  			order by ad_validate
+	  	]]>
+	 </select>
+	 
+
+	<select id="selectAdvertieseViewExpire" parameterType="ownerAdvertiseSearchVo" resultType="ownerAdvertiseAllVo">
+		select *
+		from
+		(
+		    select A.*,rownum as RNUM
+		    from
+		    (
+		    	<![CDATA[
+		        select * from jaAdvertiseView
+				where store_no=#{storeNo} and ad_validate  >= #{startDay} and	ad_validate < to_date(#{endDay})+1 and a_agree_no=3 and ad_pay_flag='Y'
+				
+				]]>
+				order by ad_validate, storead_no
+			
+		    )A
+		)
+		<![CDATA[
+		where RNUM > #{firstRecordIndex} 
+		and RNUM <= #{firstRecordIndex} + #{recordCountPerPage}
+		]]>
+	</select>
+		
+		
+			<!-- 페이징 처리를 위해 totlarecod / 이때 만료된걸 구하는거라 여기선 validate 의 부등호 위치가 다르다.-->
+	<select id="selectTotalRecord" parameterType="ownerAdvertiseSearchVo" resultType="int">
+		select count(*) from jaAdvertiseView
+		 <![CDATA[
+				where store_no=#{storeNo} and ad_validate  >= #{startDay} and	ad_validate < to_date(#{endDay})+1  and a_agree_no=3 and ad_pay_flag='Y'
+				 order by ad_validate
+			]]>
+	</select>
+		
+		
+		
+		<!-- 가격순으로 advertise 뽑아옵니다.  -->
+     <select id="selectAdvertise" resultType="ownerAdvertiseVo">
+		select * from advertise
+		order by advertise_price desc
+	</select>
+	
+	<!-- 선택창에서 가져온 넘버로 광고 찾기 -->
+	<select id="selectAdvertiseByNo" parameterType="int" resultType="ownerAdvertiseVo">
+		select * from advertise
+		where advertise_no=#{no}
+	</select>
+		
+		
+	<!-- 광고 등록하기 insert -->
+	<insert id="insertAdvertiseAd" parameterType="ownerStoreAdVo">
+		<selectKey keyProperty="storeadNo" resultType="int" order="BEFORE">
+			select storead_seq.nextval from dual
+		</selectKey>
+			insert into storeAd(storead_no, store_no, advertise_no)
+			values(#{storeadNo}, #{storeNo}, #{advertiseNo})
+	</insert>
+	
+	
+	
+	
+	
+	
+	
+	
+
+</mapper>

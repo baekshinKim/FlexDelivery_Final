@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminStores">
+	<select id="approvalList" resultType="adminStoresVo">
+		select store_no, store_regdate, o_register_no, owner_name, store_name, store_address,
+       		   store_address_detail, owner_hp1, owner_hp2, owner_hp3, a_agree_no
+			   from hjStoreApprovalView
+			   order by store_no desc
+	</select>
+	
+	<select id="approvalDetail" parameterType="int" resultType="adminStoresVo">
+		select store_no, store_regdate, o_register_no, owner_name, store_name, store_address,
+       		   store_address_detail, owner_hp1, owner_hp2, owner_hp3, a_agree_no, STORE_CONTENT,
+       		   o_register_filename, o_register_original_filename
+       		   from hjStoreApprovalView
+       		   where store_no=#{no}
+	</select>
+	
+	<select id="approvalAgree" parameterType="int">
+		update stores
+		set store_content='', a_agree_no=3, store_regdate=sysdate
+		where store_no =#{no}		
+	</select>
+	
+	<select id="approvalDeny" parameterType="int">
+		update stores
+		set a_agree_no = 4, store_content=''
+		where store_no =#{no}
+	</select>
+	
+	<select id="outAgree" parameterType="int">
+		update stores
+		set a_agree_no=9, store_outdate=sysdate
+		where store_no =#{no}		
+	</select>
+	
+	<select id="outDeny" parameterType="int">
+		update stores
+		set a_agree_no = 3
+		where store_no =#{no}
+	</select>
+	
+</mapper>
+
+

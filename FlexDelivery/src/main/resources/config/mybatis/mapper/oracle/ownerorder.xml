@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.ownerorder">
+	
+	
+	
+	<sql id="searchDate">
+		<where>
+			and store_no=#{searchVo.storeNo} and o_status_no=#{oStatusNo}
+		</where>	
+	</sql>
+	
+	<sql id="OrderByOrders">
+			<if test="oStatusNo == 1">
+				order by orders_pay_end_date 
+			</if>
+			<if test="oStatusNo == 2">
+				order by orders_date
+			</if>
+			<if test="oStatusNo == 3 || oStatusNo == 4">
+				order by orders_date + (orders_duration/(24*60))
+			</if>
+	</sql>
+<!-- 
+create or replace view jaOrderAllView
+	as
+	  select o.* , s.O_STATUS_NAME,  m.MEMBER_ID
+	  from orders o , orderstatus s , member m
+	  where o.MEMBER_NO = m.MEMBER_NO and s.O_STATUS_NO = o.O_STATUS_NO;
+	   -->
+ 
+ 
+ 
+ 
+	<select id="selectOrderAllView" parameterType="map" resultType="map">
+		<!-- select *
+		from
+		( -->
+		    select A.*,rownum as RNUM,  (A.orders_date + (A.orders_duration/(24*60))) as deliverySuccess, trunc((sysdate-ORDERS_PAY_END_DATE)*24,2) as hurryImgTerm
+		    from
+		    (
+		    
+		        select * from jaOrderAllView
+				<include refid="searchDate" />	
+				<include refid="OrderByOrders" />	
+			
+		    )A
+		
+		<!-- <![CDATA[
+		where RNUM > #{searchVo.firstRecordIndex} 
+		and RNUM <= #{searchVo.firstRecordIndex} + #{searchVo.recordCountPerPage}
+		]]> -->
+	</select>
+	
+	
+ 
+ 	<select id="selectTotalRecord" parameterType="map"
+		resultType="int">
+		select count(*) from jaOrderAllView
+		<include refid="searchDate" />	
+		<include refid="OrderByOrders" />	
+	</select>
+ 
+ 
+ 	
+ 	
+	
+	<select id="selectMenuNoByOrderNo" parameterType="int" resultType="string">
+		select menu_name from
+			(
+			    select rownum as RNUM, A.*  from 
+			    (
+			        select *
+			        from JAORDERDETAILALLVIEW
+			        where orders_No=#{ordersNo}
+			    )A
+			)
+		where RNUM =1
+	</select>
+	
+	
+	<select id="selectCountByOrderNo" parameterType="int" resultType="int">
+		select count(distinct(menu_no)) from orderdetail
+		where orders_no= #{ordersNo}
+	</select>
+		
+ 	<select id="selectMenuDetailByOrdersNo" parameterType="int" resultType="map">
+		select * from jaorderdetailAllview
+		where orders_no=#{ordersNo}
+	</select>
+ 	
+ 
+ 	<update id="updateOrdersToRequestIng" parameterType="int">
+ 		update orders
+ 		set o_status_no = 2, orders_date=sysdate
+ 		where orders_no=#{ordersNo}
+ 	</update>
+ 	
+ 	<update id="updateOrdersToDeliveryIng" parameterType="map">
+ 		update orders
+ 		set o_status_no = 3,  orders_duration=#{ordersDuration}
+ 		where orders_no=#{ordersNo}
+ 	</update>
+ 	
+ 	
+ 	<update id="updateOrdersCancel" parameterType="map">
+ 		update orders
+ 		set o_status_no = 5
+ 		where orders_no=#{ordersNo}
+ 	</update>
+  <!-- 
+  
+
+create or replace view jaOrderDetailAllView
+	as
+	  select o.* , m.menu_name, m.menu_price, p.M_OPTION_NAME,p.M_OPTION_PRICE
+	  from orderdetail o inner join menu m 
+	  on o.MENU_NO = m.MENU_NO 
+	  left  join menuoption p
+	  on p.M_OPTION_NO = o.M_OPTION_NO;
+	
+	 -->   
+	 
+	 
+	 
+	 <select id="selectOrderListView" parameterType="map" resultType="map">
+		select *
+		from
+		( 
+		    select A.*,rownum as RNUM,  (A.orders_date + (A.orders_duration/(24*60))) as deliverySuccess
+		    from
+		    (
+		    
+		        select * from jaOrderAllView
+		     
+				where store_no=#{searchVo.storeNo} and o_status_no=#{oStatusNo}
+					
+					 <if test="oStatusNo gt 3 and oStatusNo lt 5">
+						<![CDATA[	
+						 and (orders_date + (orders_duration/(24*60)))  >= #{searchVo.startDay} and	(orders_date + (orders_duration/(24*60)))  < to_date(#{searchVo.endDay})+1
+						order by (orders_date + (orders_duration/(24*60)))
+						]]> 
+					</if>	
+					<if test="oStatusNo gt 4 and oSatusNo lt 6">
+					<![CDATA[
+						and orders_pay_end_date  >= #{searchVo.startDay} and  orders_pay_end_date  < to_date(#{searchVo.endDay})+1
+						order by orders_pay_end_date
+			 			]]> 
+					</if> 
+				
+		    )A
+		
+		)
+		<![CDATA[
+			where RNUM > #{searchVo.firstRecordIndex} 
+			and RNUM <= #{searchVo.firstRecordIndex} + #{searchVo.recordCountPerPage}
+		]]> 
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	<select id="selectTotalRecordTWO" parameterType="map"
+		resultType="int">
+			
+		select count(*) from jaOrderAllView
+		where store_no=#{searchVo.storeNo} and o_status_no=#{oStatusNo}
+		 <if test="oStatusNo gt 3 and oStatusNo lt 5">
+			<![CDATA[
+			 and (orders_date + (orders_duration/(24*60)))  >= #{searchVo.startDay} and	(orders_date + (orders_duration/(24*60)))  < to_date(#{searchVo.endDay})+1
+			]]>  
+		</if>	
+		<if test="oStatusNo gt 4 and oSatusNo lt 6">
+		<![CDATA[
+			and orders_pay_end_date  >= #{searchVo.startDay} and  orders_pay_end_date  < to_date(#{searchVo.endDay})+1
+		]]>  
+		</if>	
+		
+	</select>
+	
+	
+	<select id="selectOrderAllByOrdersNo" parameterType="int" resultType="map">
+ 		select * from jaOrderAllView where orders_no=#{ordersNo}
+ 	</select>
+	
+	<select id="selectCountByStoreNo" parameterType="int" resultType="int">
+		select count(*) from orders
+		where o_status_no = 1 and store_no=#{storeNo}
+	</select>
+	     
+</mapper>

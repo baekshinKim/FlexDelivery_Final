@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminStoreAd">
+	<select id="approvalList" resultType="adminStoreAdVo">
+		select storead_no, advertise_name, store_name, ad_pay_flag, storead_regdate, ad_Validate
+		from hjstoresadview
+	</select>
+	
+	<select id="storeAdDetail" parameterType="int" resultType="adminStoreAdVo">
+		select storead_no, advertise_name, store_name, ad_pay_flag, storead_regdate, ad_Validate,
+			   store_address, store_address_detail, advertise_price
+		from hjstoresadview
+		where storead_no = #{no}		
+	</select>
+	
+	<select id="storeAdAgree" parameterType="int">
+		update storead
+		set ad_pay_flag='Y', storead_regdate=sysdate+1, ad_validate=sysdate+31
+		where storead_no = #{no}
+	</select>
+	
+</mapper>

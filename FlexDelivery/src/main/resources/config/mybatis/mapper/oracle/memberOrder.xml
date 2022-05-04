@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberOrder">
+	
+	<insert id="insertOrder" parameterType="memberOrderVo">
+		<selectKey keyProperty="ordersNo" order="BEFORE" resultType="int">
+			select orders_seq.nextval from dual
+		</selectKey>
+		insert into orders(orders_no,orders_price,member_no,member_name,orders_payment,orders_address,orders_discount,orders_message,orders_hp,store_no)
+		values (#{ordersNo},#{ordersPrice},#{memberNo},#{memberName},#{ordersPayment},#{ordersAddress},#{ordersDiscount},#{ordersMessage},#{ordersHp},#{storeNo})
+	</insert>
+	
+	<insert id="insertOrderDetail" parameterType="memberOrderDetailVo">
+		insert into orderDetail
+		values(#{ordersNo},#{menuNo},#{mOptionNo},#{oDetailQty})
+	</insert>
+	
+	<select id="selectOrderOkList" parameterType="int" resultMap="orderList">
+		select o.*,s.store_name,s.store_logo,s.store_address,s.store_address_detail 
+		from orders o,stores s
+		where o.store_no=s.store_no 
+		and member_No=#{memberNo}
+		and o.o_status_no=4
+		order by o.orders_pay_end_date desc
+	</select>
+	
+	<select id="selectOrderIngList" parameterType="int" resultMap="orderList">
+		select o.*,s.store_name,s.store_logo,s.store_address,s.store_address_detail 
+		from orders o,stores s
+		where o.store_no=s.store_no 
+		and member_No=#{memberNo}
+		and o.o_status_no in (1,2,3)
+		order by o.orders_pay_end_date desc
+	</select>
+	
+	<select id="selectOrderCancelList" parameterType="int" resultMap="orderList">
+		select o.*,s.store_name,s.store_logo,s.store_address,s.store_address_detail 
+		from orders o,stores s
+		where o.store_no=s.store_no 
+		and member_No=#{memberNo}
+		and o.o_status_no=5
+		order by o.orders_pay_end_date desc
+	</select>
+	
+	<select id="selectOrderAllByOrdersNo" parameterType="int" resultMap="orderList">
+		select o.*,s.store_name,s.store_logo,s.store_address,s.store_address_detail 
+		from orders o,stores s
+		where o.store_no=s.store_no 
+		and orders_no=#{ordersNo}
+	</select>
+	
+	<resultMap type="memberOrderAllVo" id="orderList">
+		<association property="orderVo" column="orders_No" javaType="MemberOrderVO">
+			<id property="ordersNo" jdbcType="BIGINT" column="orders_no"/>
+			<result property="ordersPrice" jdbcType="BIGINT" column="orders_price"/>
+			<result property="ordersPayment" jdbcType="VARCHAR" column="orders_payment"/>
+			<result property="memberNo" jdbcType="BIGINT" column="member_No"/>
+			<result property="memberName" jdbcType="VARCHAR" column="member_Name"/>
+			<result property="ordersAddress" jdbcType="VARCHAR" column="orders_address"/>
+			<result property="ordersDiscount" jdbcType="BIGINT" column="orders_discount"/>
+			<result property="ordersMessage" jdbcType="VARCHAR" column="orders_message"/>
+			<result property="ordersHp" jdbcType="VARCHAR" column="orders_hp"/>
+			<result property="ordersDate" jdbcType="DATE" column="orders_date"/>
+			<result property="ordersPayEndDate" jdbcType="DATE" column="orders_pay_end_date"/>
+			<result property="storeNo" jdbcType="BIGINT" column="store_no"/>
+			<result property="oStatusNo" jdbcType="BIGINT" column="o_status_no"/>
+			<result property="storeName" jdbcType="VARCHAR" column="store_name"/>
+			<result property="storeAddress" jdbcType="VARCHAR" column="store_Address"/>
+			<result property="storeAddressDetail" jdbcType="VARCHAR" column="store_Address_Detail"/>
+			<result property="storeLogo" jdbcType="VARCHAR" column="store_logo"/>
+		</association>
+		<collection property="orderDetailList" select="selectOrderDetail" column="orders_no" javaType="ArrayList" ofType="memberOrderDetailViewVO"></collection>
+	</resultMap>
+	
+	<select id="selectOrderDetail" parameterType="int" resultType="memberOrderDetailViewVo">
+		SELECT * FROM HYORDERDETAILVIEW
+		WHERE ORDERS_NO=#{ordersNo}
+	</select>
+	
+</mapper>

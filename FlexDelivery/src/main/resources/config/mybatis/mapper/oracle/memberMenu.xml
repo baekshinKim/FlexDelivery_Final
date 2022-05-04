@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberMenu">
+	<select id="selectMenuGroupByStoreNo" parameterType="int" resultType="memberMenuGroupVo">
+		select g.STORE_NO,g.S_M_GROUP_NO,g.S_M_GROUP_NAME,count(g.S_M_GROUP_NO) as s_m_group_count
+		from storemenugroup g join menu m
+		on g.S_M_GROUP_NO = m.S_M_GROUP_NO and store_no=#{storeNo}
+		group by g.STORE_NO,g.S_M_GROUP_NO,g.S_M_GROUP_NO,g.S_M_GROUP_NAME
+	</select>
+	
+	<select id="selectMenuBySMGroupNo" parameterType="int" resultMap="menuList">
+		select * from menu where s_m_group_no=#{sMGroupNo}
+	</select>
+	
+	<resultMap type="memberMenuAllVo" id="menuList">
+		<association property="memberMenuVo" column="menu_No" javaType="MemberMenuVO">
+			<id property="menuNo" jdbcType="BIGINT" column="menu_No" />
+			<result property="menuName" jdbcType="VARCHAR" column="menu_name" />
+			<result property="menuPrice" jdbcType="BIGINT" column="menu_price"/>
+			<result property="menuImg" jdbcType="VARCHAR" column="menu_img" />
+			<result property="menuContent" jdbcType="VARCHAR" column="menu_content" />
+			<result property="sMGroupNo" jdbcType="BIGINT" column="s_m_group_no"/>
+		</association>
+		<collection property="menuOptionList" select="selectMenuOption" column="menu_No" javaType="ArrayList" ofType="memberMenuOptionVO" />
+	</resultMap>
+	
+	<select id="selectMenuOption" parameterType="int" resultType="memberMenuOptionVo">
+		select * from menuoption where menu_no=#{menu_no} order by o_rank_no
+	</select>
+	
+	<select id="selectMainMenu" parameterType="int" resultMap="menuList">
+		select m.*
+		from storemainmenu s,menu m
+		where s.menu_no=m.menu_no and s.store_no=#{storeNo}
+	</select>
+	
+</mapper>

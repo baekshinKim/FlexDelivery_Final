@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminlargecategory">
+	<!-- <sql id="searchWhere">
+		<where>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				${searchCondition} like '%' || #{searchKeyword} || '%'
+			</if>
+		</where>	
+	</sql> -->
+	
+	<insert id="insertLargecategory" parameterType="adminLargeCategoryVo">
+		<selectKey keyProperty="lCategoryNo" resultType="int" order="BEFORE">
+			select largecategory_seq.nextval from dual 
+		</selectKey>
+		
+		insert into LARGECATEGORY(L_CATEGORY_NO, L_CATEGORY_NAME, L_CATEGORY_FILENAME)
+		values(#{lCategoryNo} ,#{lCategoryName}, #{lCategoryFilename})
+	</insert>
+	
+	<!-- 점포에서도 리스트 필요해서 파라미터 없애고 asc로  변경했습니당~ 혹시 안된다면 알려주십셔   -->
+	<select id="selectAll" resultType="adminLargeCategoryVo">
+		select L_CATEGORY_NO, L_CATEGORY_NAME, L_CATEGORY_FILENAME from LARGECATEGORY
+		order by L_CATEGORY_NO
+	</select>
+		
+	<select id="selectAll2" parameterType="adminMediumCategoryViewVo" resultType="adminMediumCategoryViewVo">
+		select l.L_CATEGORY_NO, l.L_CATEGORY_NAME, l.L_CATEGORY_FILENAME, count(m.L_CATEGORY_No) as L_C_COUNT
+		from LARGECATEGORY l left join MEDIUMCATEGORY m
+		on l.L_CATEGORY_no = m.L_CATEGORY_NO
+		group by l.L_CATEGORY_NO, l.L_CATEGORY_NAME, l.L_CATEGORY_FILENAME
+		order by l.L_CATEGORY_NO
+	</select>
+	
+	<select id="selectByNo" parameterType="int" resultType="AdminLargeCategoryVo">
+		select L_CATEGORY_NO, L_CATEGORY_NAME, L_CATEGORY_FILENAME from LARGECATEGORY where L_CATEGORY_NO=#{lCategoryNo}
+	</select>
+
+	<select id="checkDu" parameterType="string" resultType="int">
+		select count(L_CATEGORY_NAME) from LARGECATEGORY where L_CATEGORY_NAME like #{lCategoryName}
+	</select>
+	
+	<update id="updateLargecategory" parameterType="adminLargeCategoryVo">
+		update LARGECATEGORY 
+		set L_CATEGORY_NAME=#{lCategoryName},L_CATEGORY_FILENAME=#{lCategoryFilename}
+		<!-- <if test="fileName!=null and fileName!=''">
+			, filename=#{fileName}, originalFileName=#{originalFileName},
+			fileSize=#{fileSize}
+		</if> -->		
+		where L_CATEGORY_NO=#{lCategoryNo}
+	</update>
+	
+	<delete id="deleteLargecategory" parameterType="adminLargeCategoryVo">
+		delete from LARGECATEGORY where L_CATEGORY_NO=#{lCategoryNo}
+	</delete>
+	
+	<!--
+	<parameterMap type="map" id="adminLargeCategoryDeleteParam">
+		<parameter property="no" javaType="string" jdbcType="VARCHAR" mode="IN"/>	
+	</parameterMap>
+	
+	<delete id="deleteLargecategory" parameterMap="adminLargeCategoryDeleteParam">
+		call deleteLargecategory(?)
+	</delete>
+	 -->
+	
+</mapper>

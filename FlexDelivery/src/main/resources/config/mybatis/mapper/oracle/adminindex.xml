@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminindex">
+
+	<select id="selectNewReview" resultType="int">
+		select nvl(count(REVIEW_NO),0) as newReview
+		from REVIEW
+		where REVIEW_REPORT like 'Y' and REVIEW_DEL_FLAG like 'N'
+	</select>
+
+	<select id="selectNewAd" resultType="int">
+		select nvl(count(STOREAD_NO), 0) as newAd 
+		from STOREAD
+		where AD_PAY_FLAG like 'N' and STOREAD_REGDATE is not null and AD_VALIDATE is null
+	</select>
+
+	<select id="selectNewRegister" resultType="int">
+		select nvl(count(O_REGISTER_NO),0) as newRegister
+		from OWNERREGISTER
+		where A_AGREE_NO=1
+	</select>
+
+	<select id="selectNewStore" resultType="int">
+		select nvl(count(STORE_NO), 0) as newStore
+		from STORES
+		where A_AGREE_NO=1 and STORE_OUTDATE is null
+	</select>
+
+	<select id="selectChangeStore" resultType="int">
+		select nvl(count(T_NO),0) as changeStore
+		from TEMPORARY
+		where A_AGREE_NO=5
+	</select>
+	
+	<select id="selectMNo" resultType="int">
+		select max(M_CATEGORY_NO) as maxVal from MEDIUMCATEGORY
+	</select>
+	
+	<select id="selectMCategory" parameterType="int" resultType="adminMediumCategoryVo">
+		select M_CATEGORY_NAME from MEDIUMCATEGORY
+		where M_CATEGORY_NO=#{mCategoryNo}
+	</select>
+	
+	<select id="selectFood" parameterType="int" resultType="map">
+		select sm.STORE_NO, s.STORE_NAME, m.MENU_NAME
+		from STOREMAINMENU sm left join MEDIUMCATEGORY m
+		on sm.M_CATEGORY_NO = m.M_CATEGORY_NO
+		    left join MENU m
+		    on sm.MENU_NO = m.MENU_NO
+		        left join STORES s
+		        on sm.STORE_NO = s.STORE_NO
+		where sm.M_CATEGORY_NO=#{mCategoryNo}
+	</select>
+	
+</mapper>

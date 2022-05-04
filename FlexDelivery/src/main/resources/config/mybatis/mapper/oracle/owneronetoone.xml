@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.owneronetoone">
+		
+	<select id="selectAuthority" resultType="map">
+		select * from AUTHORITY
+		where AUTHORITY_NO=4 or AUTHORITY_NO=5
+	</select>
+	
+	<insert id="insertASK" parameterType="ownerAskVo">
+	<selectKey keyProperty="askNo" resultType="int" order="BEFORE">
+			select ASK_SEQ.nextval from dual
+		</selectKey>
+	insert into ask(ASK_NO,ASK_TITLE,ASK_ID,ASK_CONTENT,ASK_GROUP_NO,AUTHORITY_NO)
+	values(#{askNo},#{askTitle},#{askId},#{askContent},#{askNo},#{authorityNo})
+	</insert>
+	
+	<select id="selectAllAsk" parameterType="ownerAskSearchVo" resultType="ownerAskVo">
+		select *
+		from
+		(
+		    select A.*, rownum as RNUM
+		    from
+		    (
+		        select ASK_NO,
+				ASK_TITLE,ASK_ID,ASK_CONTENT,ASK_REGDATE,ASK_GROUP_NO,ASK_STEP,
+				ASK_REPLY_FLAG, AUTHORITY_NO
+		        from ask 
+			       where ask_id=#{askId}
+		        order by ASK_GROUP_NO desc, ASK_STEP
+		    )A
+		)
+        		<![CDATA[
+		where RNUM > #{firstRecordIndex} 
+		and RNUM <= #{firstRecordIndex} + #{recordCountPerPage}
+		]]>
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="ownerAdvertiseSearchVo"
+		resultType="int">
+		 select count(*) from ask where ask_id=#{askId}
+	</select>
+	
+	<delete id="deleteAsk" parameterType="int">
+		delete from ask where where ask_group_no=#{askNo}
+	</delete>
+	
+	<select id="selectByNo" parameterType="int" resultType="ownerAskVo">
+		select * from ask where ask_no=#{askNo}
+	</select>
+
+	<update id="updateASK" parameterType="ownerAskVo">
+	update ask 
+	set ask_title=#{askTitle}, ask_content=#{askContent}
+	where ask_no=#{askNo}
+	</update>
+
+	<select id="replyAsk" parameterType="int" resultType="ownerAskVo">
+		select * from ask
+		where ask_group_no=#{askNo} and ask_step=1
+	</select>
+
+
+</mapper>

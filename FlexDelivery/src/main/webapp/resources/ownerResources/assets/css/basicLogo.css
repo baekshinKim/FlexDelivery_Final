@@ -1,0 +1,52 @@
+@charset "UTF-8";
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@200;300;400;500;600;700;800;900&display=swap');
+
+div.Dialog:not(.alert):not(.confirm):not(.tooltip)>form.dialog {
+    overflow: hidden;
+    height: 84%
+}
+
+div.Dialog form.dialog {
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,.4);
+    position: relative;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    max-width: 100%;
+    overflow-y: auto;
+    border-radius: 8px;
+}
+
+div.Dialog form.dialog.off {
+    animation: dialogFadeOut .3s forwards
+}
+
+div.Dialog form.dialog.on {
+    animation: dialogFadeIn .3s forwards;
+}
+
+div.Dialog form.dialog.center .wrap .content {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-pack: center;
+    align-items: center
+}
+
+div.Dialog form.dialog.center .wrap .content:after {
+    content: "";
+    min-height: 80px;
+    font-size: 0
+}
+
+div.Dialog form.dialog .header {
+    display: -ms-flexbox;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eceef2;
+}
+
+
+

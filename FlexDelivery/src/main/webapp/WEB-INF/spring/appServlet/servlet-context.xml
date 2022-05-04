@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+	
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<annotation-driven />
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+	<resources mapping="/resources/**" location="/resources/" />
+	<!-- <resources mapping="/images/**" location="/images/" />
+	<resources mapping="/css/**" location="/css/" /> -->
+
+	<!-- <default-servlet-handler/> -->
+
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="prefix" value="/WEB-INF/views/" />
+		<beans:property name="suffix" value=".jsp" />
+		<beans:property name="order" value="1" />
+	</beans:bean>
+	
+	
+	<context:component-scan base-package="com.project.fd" use-default-filters="false">
+		<context:include-filter expression="org.springframework.stereotype.Controller" 
+		type="annotation"/>
+	</context:component-scan>
+	
+	<beans:bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+	     <beans:property name="order" value="0" />
+	</beans:bean>
+	
+	<beans:bean id="excelDownloadView" class="com.project.fd.common.ExcelDownloadView"/>
+    
+    <beans:bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/>	
+	
+	<interceptors>
+		<interceptor>
+			<mapping path="/member/mypage/**/*"/>
+			<mapping path="/member/gift/**/*"/>
+			<mapping path="/member/coupon/**/*"/>
+			<mapping path="/member/order/**/*"/>
+			<mapping path="/member/store/**/*"/>
+			<mapping path="/member/cart/**/*"/>
+			<mapping path="/member/review/**/*"/>
+			<mapping path="/member/menu/**/*"/>
+			<mapping path="/member/today/**/*"/>
+			<mapping path="/member/ask/**/*"/>
+			<mapping path="/member/faq/**/*"/>
+			<exclude-mapping path="/member/board/**/*"/>
+			<exclude-mapping path="/member/login/*"/>
+			<exclude-mapping path="/member/register/register.do"/>
+			<beans:ref bean="memberLoginInterceptor"/>
+		</interceptor>
+	</interceptors>
+
+	
+	<interceptors>
+		<interceptor>
+			<mapping path="/owner/menu2/myStoreIndex.do"/>
+			<beans:ref bean="ownerMyStoreInterceptor"/>
+		</interceptor>
+		<interceptor>
+			<mapping path="/owner/menu1/launch/launchNext.do"/>
+			<beans:ref bean="licenseInterceptor"/>
+		</interceptor>
+	</interceptors>
+	
+	
+	<interceptors>
+		<interceptor>
+			<mapping path="/owner/mypage/mypageDelete.do"/>
+			<beans:ref bean="ownerWidthrowInterceptor"/>
+		</interceptor>
+	</interceptors>
+	 
+	
+	<interceptors>
+		<interceptor>
+			<!-- <mapping path="/owner/mypage/mypageEdit.do"/> -->
+			<mapping path="/owner/register/registerEdit.do"/>
+			<beans:ref bean="ownerEditInterceptor"/>
+		</interceptor>
+	</interceptors>
+	
+	
+	
+	
+	<interceptors>
+		<interceptor>
+			<mapping path="/admin/myPage/**/*" />
+			<mapping path="/admin/menu1/**/*" />
+			<mapping path="/admin/menu2/**/*" />
+			<mapping path="/admin/menu3/**/*" />
+			<mapping path="/admin/menu4/**/*" />
+			<mapping path="/admin/menu5/**/*" />
+			<mapping path="/admin/menu6/**/*" />
+			<mapping path="/admin/menu7/**/*" />
+			<exclude-mapping path="/admin/login/login.do"/>
+			<exclude-mapping path="/admin/index.do"/>
+			<beans:ref bean ="adminLoginInterceptor" />
+		</interceptor>
+	</interceptors>
+	
+</beans:beans>

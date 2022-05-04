@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminboard">
+
+	<select id="selectAll" resultType="adminBoardVo">
+		select BOARD_NO, BOARD_TITLE, BOARD_CONTENT, BOARD_THUMBNAIL, BOARD_REGDATE,
+		BOARD_HEAD, AUTHORITY_NO from BOARD
+		order by BOARD_NO desc
+	</select>
+
+	<select id="selectAll2" resultType="adminBoardAllVo">
+		select b.*, a.AUTHORITY_NAME
+		from BOARD b left join AUTHORITY a
+		on b.AUTHORITY_NO=a.AUTHORITY_NO
+		order by BOARD_NO desc
+	</select>
+
+	<select id="selectByNo2" parameterType="int" resultType="adminBoardAllVo">
+		select b.*, a.AUTHORITY_NAME
+		from BOARD b left join AUTHORITY a
+		on b.AUTHORITY_NO=a.AUTHORITY_NO
+		where b.BOARD_NO=#{boardNo}	
+	</select>
+	
+	<select id="selectByNo" parameterType="adminBoardVo" resultType="adminBoardVo">
+		select BOARD_NO, BOARD_TITLE, BOARD_CONTENT, BOARD_THUMBNAIL, BOARD_REGDATE,
+		BOARD_HEAD, AUTHORITY_NO from BOARD
+		where BOARD_NO=#{boardNo}	
+	</select>
+
+	
+	<select id="selectRn" parameterType="map" resultType="int">
+		select rn from
+			(select rownum as rn, b.* from BOARD b 
+			where BOARD_HEAD=#{boardHead} and AUTHORITY_NO=#{authorityNo}
+			order by BOARD_NO asc)A
+		where BOARD_NO=#{boardNo}
+	</select>
+	
+	<select id="selectAllForRn"	parameterType="map" resultType="map">
+		select A.* from 
+			(select rownum as rn, b.* from BOARD b 
+			where BOARD_HEAD=#{boardHead} and AUTHORITY_NO=#{authorityNo}
+			order by BOARD_NO asc)A
+	</select>
+	
+	<select id="selectByRn"	parameterType="map" resultType="map">
+		select A.* from 
+			(select rownum as rn, b.* from BOARD b 
+			where BOARD_HEAD=#{boardHead} and AUTHORITY_NO=#{authorityNo}
+			order by BOARD_NO asc)A
+		where rn=#{rn}
+	</select>
+	
+	<select id="selectMinRn" parameterType="map" resultType="int">
+		select min(rn) from
+			(select rownum as rn, b.* from BOARD b 
+			where BOARD_HEAD=#{boardHead} and AUTHORITY_NO=#{authorityNo}
+			order by BOARD_NO asc)A
+	</select>
+	
+	<select id="selectMaxRn" parameterType="map" resultType="int">
+		select max(rn) from
+			(select rownum as rn, b.* from BOARD b 
+			where BOARD_HEAD=#{boardHead} and AUTHORITY_NO=#{authorityNo}
+			order by BOARD_NO asc)A
+	</select>
+	
+	<select id="selectEvent" resultType="adminBoardAllVo">
+		select b.*, a.AUTHORITY_NAME
+		from BOARD b left join AUTHORITY a
+		on b.AUTHORITY_NO=a.AUTHORITY_NO
+		where BOARD_HEAD='이벤트'
+		order by BOARD_NO desc
+	</select>
+
+	<select id="selectNotice" resultType="adminBoardAllVo">
+		select b.*, a.AUTHORITY_NAME
+		from BOARD b left join AUTHORITY a
+		on b.AUTHORITY_NO=a.AUTHORITY_NO
+		where BOARD_HEAD='공지사항'
+		order by BOARD_NO desc
+	</select>
+	
+	
+	<insert id="insertBoard" parameterType="adminBoardVo" >
+		<selectKey keyProperty="boardNo" resultType="int" order="BEFORE">
+			select BOARD_seq.nextval from dual
+		</selectKey>
+		insert into BOARD(BOARD_NO, BOARD_TITLE, BOARD_CONTENT, BOARD_THUMBNAIL, BOARD_REGDATE, BOARD_HEAD, AUTHORITY_NO)
+		values(#{boardNo}, #{boardTitle}, #{boardContent}, #{boardThumbnail}, SYSDATE, #{boardHead}, #{authorityNo})	
+	</insert>
+	
+	<update id="updateBoard" parameterType="adminBoardVo">
+		update BOARD
+		set BOARD_TITLE=#{boardTitle}, BOARD_CONTENT=#{boardContent}, BOARD_THUMBNAIL=#{boardThumbnail},
+			BOARD_HEAD=#{boardHead}, AUTHORITY_NO=#{authorityNo}
+		where BOARD_NO=#{boardNo}
+	</update>
+	
+	<delete id="deleteBoard" parameterType="int">
+		delete from BOARD
+		where BOARD_NO=#{boardNo}
+	</delete>
+	
+</mapper>

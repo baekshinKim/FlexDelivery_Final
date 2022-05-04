@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminfaq">
+
+	<select id="selectAll" parameterType="adminFaqVo" resultType="adminFaqVo">
+		select FAQ_NO, F_CATEGORY_NO, FAQ_Q, FAQ_A from FAQ
+		order by FAQ_NO desc
+	</select>
+	
+	<select id="selectAll2" parameterType="adminFaqAllViewVo" resultType="adminFaqAllViewVo">
+		select f.*, c.F_CATEGORY_NAME
+		from FAQ f left join FAQCATEGORY c
+		on f.F_CATEGORY_NO=c.F_CATEGORY_NO
+		order by f.FAQ_NO
+	</select>
+
+	<select id="selectFor" parameterType="int" resultType="adminFaqVo">
+		select FAQ_NO, F_CATEGORY_NO, FAQ_Q, FAQ_A from FAQ
+		where F_CATEGORY_NO=#{fCategoryNo}
+		order by FAQ_NO desc
+	</select>
+	
+	<select id="selectFor2" parameterType="int" resultType="adminFaqAllViewVo">
+		select f.*, c.F_CATEGORY_NAME
+		from FAQ f left join FAQCATEGORY c
+		on f.F_CATEGORY_NO=c.F_CATEGORY_NO
+		where f.f_category_no=#{fCategoryNo}
+		order by f.FAQ_NO
+	</select>
+	
+	<select id="selectCategoryAll" parameterType="adminFaqCategoryVo" resultType="adminFaqCategoryVo">
+		select F_CATEGORY_NO, F_CATEGORY_NAME, AUTHORITY_NO from FAQCATEGORY
+		order by F_CATEGORY_NO desc
+	</select>
+	
+	<select id="checkDu" parameterType="string" resultType="int">
+		select count(F_CATEGORY_NAME) from FAQCATEGORY 
+		where F_CATEGORY_NAME like #{fCategoryName}
+	</select>
+	
+	<select id="chkFCategory" parameterType="int" resultType="map">
+		select nvl(count(f.F_CATEGORY_NO),0) as cntFCategory
+		from FAQ f
+		where f.F_CATEGORY_NO=#{fCategoryNo}
+	</select>
+	
+	<insert id="insertFaq" parameterType="adminFaqVo" >
+		<selectKey keyProperty="faqNo" resultType="int" order="BEFORE">
+			select FAQ_seq.nextval from dual
+		</selectKey>
+		insert into FAQ(FAQ_NO, F_CATEGORY_NO, FAQ_Q, FAQ_A)
+		values(#{faqNo}, #{fCategoryNo}, #{faqQ}, #{faqA})
+	</insert>
+	
+	<update id="updateFaq" parameterType="adminFaqVo">
+		update FAQ
+		set F_CATEGORY_NO=#{fCategoryNo}, FAQ_Q=#{faqQ}, FAQ_A=#{faqA}
+		where FAQ_NO=#{faqNo}
+	</update>
+	
+	<delete id="deleteFaq" parameterType="int">
+		delete from FAQ
+		where FAQ_NO=#{faqNo}
+	</delete>
+	
+	<insert id="insertFaqCategory" parameterType="adminFaqCategoryVo" >
+		<selectKey keyProperty="fCategoryNo" resultType="int" order="BEFORE">
+			select FAQCATEGORY_seq.nextval from dual
+		</selectKey>
+		insert into FAQCATEGORY(F_Category_NO, F_CATEGORY_NAME, AUTHORITY_NO)
+		values(#{fCategoryNo}, #{fCategoryName}, #{authorityNo})
+	</insert>
+	
+	<update id="updateFaqCategory" parameterType="adminFaqCategoryVo">
+		update FAQCATEGORY
+		set F_CATEGORY_NAME=#{fCategoryName}, AUTHORITY_NO=#{authorityNo}
+		where F_CATEGORY_NO=#{fCategoryNo}
+	</update>
+	
+	<delete id="deleteFaqCategory" parameterType="int">
+		delete from FAQCATEGORY
+		where F_CATEGORY_NO=#{fCategoryNo}
+	</delete>
+	
+</mapper>

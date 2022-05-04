@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.admingiftcategory">
+
+	<select id="selectAll" parameterType="adminGiftCategoryVo" resultType="adminGiftCategoryVo">
+		select G_CATEGORY_NO, G_CATEGORY_NAME from GIFTCATEGORY
+		order by G_CATEGORY_NO desc
+	</select>
+	
+	<select id="selectAll2" parameterType="adminGiftCategoryProductVo" resultType="adminGiftCategoryProductVo">
+		select c.G_CATEGORY_NO, c.G_CATEGORY_NAME, count(p.G_CATEGORY_NO) as C_COUNT
+		from GIFTCATEGORY c left join GIFTPRODUCT p
+		on c.G_CATEGORY_NO=p.G_CATEGORY_NO
+		group by c.G_CATEGORY_NO, c.G_CATEGORY_NAME
+		order by c.G_CATEGORY_NO desc
+	</select>
+	
+	<select id="checkDu" parameterType="string" resultType="int">
+		select count(G_CATEGORY_NAME) from GIFTCATEGORY 
+		where G_CATEGORY_NAME like #{gCategoryName}
+	</select>
+	
+	<insert id="insertGiftCategory" parameterType="adminGiftCategoryVo" >
+		<selectKey keyProperty="gCategoryNo" resultType="int" order="BEFORE">
+			select GIFTCATEGORY_seq.nextval from dual
+		</selectKey>
+		insert into GIFTCATEGORY(G_CATEGORY_NO, G_CATEGORY_NAME)
+		values(#{gCategoryNo}, #{gCategoryName})
+	</insert>
+	
+	<update id="updateGiftCategory" parameterType="adminGiftCategoryVo">
+		update GIFTCATEGORY
+		set G_CATEGORY_NAME=#{gCategoryName}
+		where G_CATEGORY_NO=#{gCategoryNo}
+	</update>
+	
+	<delete id="deleteGiftCategory" parameterType="adminGiftCategoryVo">
+		delete from GIFTCATEGORY
+		where G_CATEGORY_NO=#{gCategoryNo}
+	</delete>
+	
+</mapper>

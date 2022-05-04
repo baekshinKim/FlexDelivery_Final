@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.ownerstores">
+   
+      <!-- 입점 신청 폼에서 뿌려줄 지역 코드 번호   -->
+   <select id="AllLocation" resultType="locationVo">
+      select * from LOCATION
+   </select>
+
+   <insert id="registerStores" parameterType="ownerStoresVo">
+   <selectKey keyProperty="storeNo" resultType="int" order="BEFORE">
+      select stores_seq.nextval from dual 
+   </selectKey> 
+    insert into STORES(STORE_NO,STORE_NAME,STORE_LOGO,STORE_ADDRESS,
+    STORE_ADDRESS_DETAIL,OWNER_NO,L_CATEGORY_NO,LOCATION_NO,
+    O_REGISTER_NO,STORE_CONTENT)
+   values(#{storeNo},#{storeName},#{storeLogo},#{storeAddress},#{storeAddressDetail},
+   #{ownerNo},#{lCategoryNo},#{locationNo},#{oRegisterNo},#{storeContent})
+   </insert>
+   
+	<select id="getTotalRecord" parameterType="dateSearchVo" resultType="int">
+		select count(*) from adminagree
+		where orderdate >= #{startDay} and
+		<![CDATA[
+		orderdate< to_date(#{endDay})+1
+		]]>
+		<if test="ownerId !=null and ownerId!=''">
+			and ownerId=#{ownerId}
+		</if>
+	</select>
+	
+	<select id="existOwnerNo" parameterType="int" resultType="long">
+		select * from ownerregister
+		where owner_no=#{ownerNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+	</select>
+	
+	<select id="selectStoreNoByNo" parameterType="int" resultType="int">
+		select store_No from stores
+		where owner_No=#{ownerNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+	</select>
+	
+		<select id="selectOwnerAuthorityAll"  parameterType="string" resultType="ownerAuthorityVo">
+		select * from jaOwnerAuthorityAllView
+		where owner_id = #{userid} 
+	</select>
+	
+	<!-- 지안 진행중 -->
+	<select id="selectStoreByOwnerNo" parameterType="int" resultType="ownerStoresVo">
+		select * from stores
+		where owner_no=#{ownerNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+	</select>
+	
+	
+	
+	
+<!-- 	create or replace view jaStoresOperationView
+   as
+    select s.store_open_time, s.store_close_time, s.h_category_no ,
+        s.s_status_no, h.H_CATEGORY_NAME, t.s_status_name , s.owner_no,s.store_No, s.store_name
+    from stores s left join holidaycategory h
+    on s.h_category_no= h.h_category_no
+    left join storestatus t
+    on t.s_status_no = s.s_status_no; -->
+    
+    <select id="selectBasic" parameterType="int" resultType="ownerStoresVo">
+    	select STORE_NO,STORE_NAME,STORE_LOGO,STORE_ADDRESS,
+	 	STORE_ADDRESS_DETAIL,OWNER_NO,STORE_CONTENT from STORES
+    	where owner_no=#{ownerNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+    </select>
+    
+    <update id="updateContent" parameterType="map">
+       update stores
+       set STORE_CONTENT= #{storeContent}
+       where store_no = #{storeNo} and a_Agree_no!=9
+    </update>
+    
+    <update id="updatelogo" parameterType="ownerStoresVo">
+    	update stores
+    	set STORE_LOGO= #{storeLogo}
+    	where store_no = #{storeNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+    </update>
+    
+    <select id="selectOperationViewAll" parameterType="int" resultType="map">
+    	select * from jaStoresOperationView
+    	where owner_no=#{ownerNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+    </select>
+      
+    <update id="holidayUpdate" parameterType="map">
+    	update stores
+    	set h_category_no=#{hCategoryNo}
+    	where store_no = #{storeNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+    </update>
+    
+    <update id="updateStatus" parameterType="map"> <!-- 지안20210211수정 -->
+    	update stores
+    	set s_status_no=#{sStatusNo}
+    	where store_no = #{storeNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+    </update>
+    
+     <update id="updateTime" parameterType="map">
+    	update stores
+    	set store_open_time = #{startTime}, store_close_time=#{closeTime}
+    	where store_no = #{storeNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+    </update>
+   
+    <select id="selectsStatusAll" resultType="map">
+       select * from storestatus
+       order by s_status_no
+    </select>
+   
+
+<!--    지안 20210211 수장 다시시작 -->
+    <select id="selectLCategoryName" parameterType="int" resultType="string">
+       select L_CATEGORY_NAME from largeCategory
+       where l_category_no = #{lCategoryNo}
+    </select>
+    <!-- 지안 20210211 수정 끝 --> 
+    
+    <select id="dupckstores" parameterType="int" resultType="int">
+   	 select count(*) from stores where owner_no=#{ownerNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+    </select>
+    
+     <select id="dupckregi" parameterType="int" resultType="int">
+   	 select count(*) from ownerregister where owner_no=#{ownerNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+    </select>
+    
+     <update id="updateMinPrice" parameterType="map"> <!-- 지안 20210217 추가-->
+    	update stores
+    	set store_Min_Price = #{storeMinPrice}
+    	where store_no = #{storeNo} and a_Agree_no!=9 and a_Agree_no!=2 and a_Agree_no!=4
+    </update>
+</mapper>

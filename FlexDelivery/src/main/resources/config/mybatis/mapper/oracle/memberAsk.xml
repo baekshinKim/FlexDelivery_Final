@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberAsk">
+	<insert id="askWrite" parameterType="memberAskVo">
+		<selectKey keyProperty="askNo" resultType="int" order="BEFORE">
+			select ASK_SEQ.nextval from dual
+		</selectKey>
+		
+		insert into ask(ask_No, ask_Title, ask_ID, ask_Content, ask_regdate,
+			ask_Group_No, ask_Reply_Flag, authority_No)
+		values(#{askNo}, #{askTitle}, #{askId}, #{askContent}, default, #{askNo}, default, #{authorityNo})
+	</insert> 
+
+	<select id="selectICAsk" parameterType="memberAskVo" resultType="memberAskVo">
+		select * from ask
+		where ask_id = #{askId} and authority_No in (1,2,3) order by ask_No desc
+	</select>
+
+	<select id="detailAsk" parameterType="memberAskVo" resultType="memberAskVo">
+		select * from ask
+		where ask_no=#{askNo}
+	</select>
+	
+	<select id="replyAskSelect" parameterType="memberAskVo" resultType="memberAskVo">
+		select * from ask
+		where ask_group_no=#{askNo} and ask_step=1
+	</select>
+
+	<delete id="deleteAsk" parameterType="memberAskVo">
+		delete from ask
+		where ask_group_no=#{askNo}
+	</delete>
+</mapper>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberGift">
+	<select id="selectTakeGiftList" parameterType="int" resultType="memberGiftVo">
+		select g.*,gp.g_p_type_Price from
+		gift g, giftpricetype gp
+		where g.G_P_TYPE_NO = gp.G_P_TYPE_NO
+		and gift_take_member_no=#{memberNo}
+		and gift_use='N'
+	</select>
+	
+	<select id="myTakeGiftList" parameterType="int" resultType="memberGiftVo">
+		select g.*,gpd.g_product_name,g_product_filename,gp.g_p_type_Price,(select member_name from member m where m.MEMBER_NO=g.gift_give_member_no) as gift_give_member_name from
+		gift g, giftpricetype gp,giftProduct gpd
+		where g.G_P_TYPE_NO = gp.G_P_TYPE_NO
+		and g.G_PRODUCT_NO = gpd.G_PRODUCT_NO
+		and gift_take_member_no=#{memberNo}
+	</select>
+	
+	<select id="myGiveGiftList" parameterType="int" resultType="memberGiftVo">	
+		select g.*,gpd.g_product_name,g_product_fileName,gp.g_p_type_Price,
+		(select member_name from member m where m.MEMBER_NO=g.gift_take_member_no) as gift_take_member_name from
+		gift g, giftpricetype gp,giftProduct gpd
+		where g.G_P_TYPE_NO = gp.G_P_TYPE_NO
+		and g.G_PRODUCT_NO = gpd.G_PRODUCT_NO
+		and gift_give_member_no=#{memberNo}
+	</select>
+	
+	<update id="useGift" parameterType="int">
+		update gift
+		set gift_use='Y'
+		where gift_no=#{giftNo}
+	</update>
+	
+	<select id="giftProductList" parameterType="int" resultType="memberGiftProductVo">
+		SELECT g.*,c.G_CATEGORY_NAME 
+		FROM GIFTPRODUCT g,giftcategory c
+		where g.G_CATEGORY_NO = c.G_CATEGORY_NO
+		<if test="_parameter!=0">
+			and	g.g_category_no=#{gCategoryNo}
+		</if>
+	</select>
+	
+	<select id="giftCount" parameterType="int" resultType="int">
+		select count(*)	FROM GIFTPRODUCT g,giftcategory c
+		where g.G_CATEGORY_NO = c.G_CATEGORY_NO
+		<if test="_parameter!=0">
+			and	g.g_category_no=#{gCategoryNo}
+		</if>
+	</select>
+	
+	<select id="giftCategorySlider" resultType="map">
+		select * from giftCategory
+	</select> 
+	<select id="giftPriceList" resultType="map">
+		select * from giftPriceType
+	</select>
+	
+	<insert id="giftSend" parameterType="memberGiftVo">
+		insert into gift
+		values(gift_seq.nextval,#{gPTypeNo},#{gProductNo},#{giftTakeMemberNo},#{giftGiveMemberNo},'N')
+	</insert>
+	
+</mapper>

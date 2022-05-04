@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.ownerlaunch">
+<!-- long type 자료형이라 resultMap사용  -->
+
+	<select id="dupckRegiNo" parameterType="long" resultType="int">
+	select count(*) from OWNERREGISTER
+	where O_REGISTER_NO=#{oRegisterNo}
+	</select>
+
+	<insert id="insertRegister" parameterType="ownerRegisterVo" >
+		insert into ownerregister(O_REGISTER_NO,O_REGISTER_FILENAME, O_REGISTER_ORIGINAL_FILENAME,OWNER_NO)
+		values(#{oRegisterNo}, #{oRegisterFileName},#{oRegisterOriginalFileName},#{ownerNo})
+	</insert>
+	
+
+	<delete id="deleteRegi">
+	delete from OWNERREGISTER
+		where O_REGISTER_NO=#{oRegisterNo}
+	</delete>
+	
+	<!-- 승인 목록 조회 
+create or replace view LSJAgreeListView
+as
+select s.STORE_NO,s.A_AGREE_NO as SAGREENO,s.STORE_REGDATE,
+o.O_REGISTER_NO,o.A_AGREE_NO as RAGREENO, o.owner_no, o.OWNERREGISTER_REGDATE,
+a.STOREAD_NO, a.ad_pay_flag, a.STOREAD_REGDATE
+from ownerRegister o full outer join stores s
+on  o.OWNER_NO=s.OWNER_NO
+ full join STOREAD a
+on a.store_no=s.STORE_NO;
+
+create or replace view LSJAgreeListView2
+as
+select s.STORE_NO,s.A_AGREE_NO as SAGREENO,s.STORE_REGDATE,
+o.O_REGISTER_NO,o.A_AGREE_NO as RAGREENO, o.owner_no, o.OWNERREGISTER_REGDATE,
+a.STOREAD_NO, a.ad_pay_flag, a.STOREAD_REGDATE, t.T_REGDATE, t.A_AGREE_NO as TAGREENO,t.T_NO
+from ownerRegister o full outer join stores s
+on  o.OWNER_NO=s.OWNER_NO
+ full join STOREAD a
+on a.store_no=s.STORE_NO
+full join temporary t
+on s.STORE_NO=t.STORE_NO;
+
+	 -->
+		<select id="selectLSJAgreeListView" parameterType="int"
+		resultType="map">
+		select * from LSJAgreeListView2
+		where OWNER_NO=#{ownerNo}
+	</select>
+	
+	<delete id="deleteAd" parameterType="int">
+		delete from STOREAD
+		where STOREAD_NO=#{storeadNo}
+	</delete>
+	
+	<!-- 승인 목록에서 취소하면 2로 업데이트  -->
+	<update id="updateAgreeRegi" parameterType="ownerRegisterVo">
+	update ownerRegister
+	set A_AGREE_NO=2
+	where OWNER_NO=#{ownerNo} and O_REGISTER_NO=#{oRegisterNo}
+	</update>
+	
+	<!-- 각자 디테일 뽑아주기  -->
+	<select id="selectAD" parameterType="int" resultType="ownerStoreAdVo">
+	select * from storead where storead_no=#{storeadNo}
+	</select>
+	
+	<select id="selecSt" parameterType="int" resultType="ownerStoresVo">
+	select s.* ,c.LOCATION_NAME, l.L_CATEGORY_NAME
+		from STORES s join LOCATION c
+		on s.LOCATION_NO=c.LOCATION_NO
+        join LARGECATEGORY l
+        on s.L_CATEGORY_NO=l.L_CATEGORY_NO
+        where s.store_no=#{storeNo}
+	</select>
+	
+	
+	<!-- 20210211 지안 추가 시작 -->
+	<select id="selectRegisterByOwnerNo" parameterType="int" resultType="ownerRegisterVo">
+		select * from ownerRegister
+		where owner_no=#{ownerNo} and  a_agree_no !=2 and a_agree_no !=4 and a_agree_no !=9
+	</select>
+	<!-- 20210211 지안 추가 끝 -->
+	
+</mapper>

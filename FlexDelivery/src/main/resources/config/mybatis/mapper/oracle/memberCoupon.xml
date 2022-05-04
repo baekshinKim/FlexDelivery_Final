@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberCoupon">
+	<!-- create or replace view hyStoreCouponBoxView
+	as
+	select s.*,r.r_coupon_dc,r_coupon_min
+	from
+	regularcoupon r,storecouponbox s
+	where r.R_COUPON_NO = s.R_COUPON_NO; -->
+	
+	<!-- create or replace view hymemberCouponBoxview
+	as
+	select scb.*,rb.MEMBER_NO,rb.R_C_BOX_END,rb.R_C_BOX_USE,r.R_COUPON_DC,r.R_COUPON_MIN from
+	regularcouponbox rb,storecouponbox scb,regularcoupon r
+	where rb.S_C_BOX_NO = scb.S_C_BOX_NO
+	and scb.R_COUPON_NO = r.R_COUPON_NO -->
+
+	<select id="storeCouponList" parameterType="map" resultType="memberStoresCouponVo">
+		select hy.*,
+		(select count(*) from regularcouponbox b where hy.s_c_box_no=b.s_c_box_no and b.member_no=#{memberNo})
+		as dupChk,
+		(select b.r_c_box_use from regularcouponbox b where hy.s_c_box_no=b.s_c_box_no and b.member_no=#{memberNo})
+		as r_c_box_use
+		from
+		hystorecouponboxview hy
+		where hy.store_no=#{storeNo}
+		and hy.s_c_service='Y'
+		and sysdate>hy.s_c_start_date
+		<![CDATA[
+		and sysdate<hy.s_c_end_date
+		]]>
+		order by hy.r_coupon_min
+	</select>
+	
+	<select id="memberCouponList" parameterType="map" resultType="memberRegularCouponBoxVo">
+		select hy.*,r.MEMBER_NO,r.R_C_BOX_END,r.R_C_BOX_USE from 
+		hyStoreCouponBoxView hy,regularCouponbox r
+		where hy.S_C_BOX_NO = r.S_C_BOX_NO
+		and member_No=#{memberNo}
+		and hy.STORE_NO=#{storeNo}
+		and r_c_box_end>sysdate
+		and r_c_box_use='N'
+	</select>
+	
+	<insert id="addCoupon" parameterType="memberRegularCouponBoxVo">
+		insert into regularCouponBox(member_no,s_c_box_no)
+		values(#{memberNo},#{sCBoxNo})
+	</insert>
+	
+	<select id="storeCouponCount" parameterType="int" resultType="int">
+		select count(*) from storeCouponBox
+		where store_No=#{storeNo}
+		and s_c_end_date>sysdate
+		and sysdate>s_c_start_date
+		and s_c_service='Y'
+	</select>
+	
+	<update id="useCoupon" parameterType="map">
+		update regularCouponBox
+		set r_c_box_use='Y'
+		where member_no=#{memberNo}
+		and s_C_Box_No=#{sCBoxNo}
+	</update>
+	<select id="eventCouponBoxList" parameterType="int" resultType="memberEventCouponBoxVO">
+		select b.member_no,e.* from 
+		eventcouponbox b, eventcoupon e
+		where b.E_COUPON_NO = e.E_COUPON_NO
+		and member_no=#{memberNo}
+		and sysdate>e_coupon_start_date
+		and e_coupon_end_date>sysdate
+		and use_flag='N'
+	</select>
+	<update id="useECoupon" parameterType="map">
+		update eventCouponBox
+		set use_flag='Y'
+		where member_no=#{memberNo}
+		and e_Coupon_No=#{eCouponNo}
+	</update>
+	
+	<select id="memberRegularCouponList" parameterType="int" resultType="memberRegularCouponBoxVo">
+		select hy.*,(select store_logo from stores s where s.STORE_NO=hy.store_no) as store_logo,
+		(select store_name from stores s where s.STORE_NO=hy.store_no) as store_name
+		from hymemberCouponBoxview hy
+		where member_no=#{memberNo}
+		order by r_c_box_use,r_c_box_end desc
+	</select>
+	
+	<select id="memberEventCouponList" parameterType="int" resultType="memberEventCouponBoxVO">
+		select * from eventcoupon e, eventcouponbox b
+		where e.E_COUPON_NO=b.E_COUPON_NO
+		where member_no=#{memberNo}
+	</select>
+	
+	<select id="eventCouponAll" resultType="memberEventCouponBoxVO" parameterType="int">
+		select * from(
+		select e.*,(select count(*) from eventcouponbox b where b.e_coupon_no=e.e_coupon_no and member_no=#{memberNo})as count 
+		from eventcoupon e
+		)
+		where count=0
+	</select>
+	
+	<insert id="getEventCoupon" parameterType="map">
+		insert into eventCouponBox(e_coupon_no,member_no)
+		values(#{eCouponNo},#{memberNo})
+	</insert>
+</mapper>

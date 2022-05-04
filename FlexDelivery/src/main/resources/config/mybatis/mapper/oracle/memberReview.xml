@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberReview">
+	
+	<!-- 
+	create or replace view hyReviewCountView
+	as
+	select o.orders_no,o.MEMBER_NO,o.store_no
+	(select count(*) from review r where r.orders_no=o.orders_no) as reviewCnt
+	from orders o
+	where o_status_no=4;
+	리뷰 갯수 구하기 위한 view
+	컬럼 : 주문번호 / 회원번호 / 주문번호에 작성된 리뷰의 count, 1이상이면 이미 작성됨
+	-->
+	
+	<select id="selectStoreReview" parameterType="map" resultType="memberReviewVo">
+		select *
+		from 
+		(
+			select s.*,rownum as RNUM
+			from
+			(
+				select r.*,m.member_Id,
+				(select distinct menu_name from hyorderDetailview d where  r.ORDERS_NO = d.ORDERS_NO and rownum=1) as menu_name,
+				(select count(distinct menu_name) from hyorderdetailview d where r.orders_no=d.orders_no group by orders_no) as menu_count
+				from
+				review r,member m
+				where r.MEMBER_NO = m.MEMBER_NO
+				and store_No=#{storeNo}
+				order by review_No desc
+			)s
+		)A
+		<![CDATA[
+		where RNUM>=#{startIndex} and RNUM<=#{lastIndex}
+		]]>
+	</select>
+	
+	<select id="reviewChk" parameterType="map" resultType="int">
+		select count(*) 
+		from hyReviewCountView
+		where member_no=#{memberNo}
+		and store_No=#{storeNo}
+		and reviewCnt=0
+	</select>
+	
+	<select id="orderListForReview" parameterType="int" resultType="map">
+		select orders_no,(select menu_name from hyorderdetailview d where d.orders_no=v.orders_no and rownum=1) as menu_name,
+		(select count(distinct menu_name) from hyorderdetailview d where d.orders_no=v.orders_no group by orders_no) as menu_count
+		from hyReviewCountView v
+		where member_no=#{memberNo}
+		and store_no=#{storeNo}
+		and (select o_status_no from orders o where v.ORDERS_NO = o.ORDERS_NO)=4
+		and reviewCnt=0
+	</select>
+	
+	<insert id="reviewWrite" parameterType="memberReviewVo">
+		insert into review
+		values(review_seq.nextval,#{reviewRating},#{reviewContent},0,sysdate,'N',#{reviewFilename},'N',#{memberNo},#{ordersNo},#{storeNo},null)
+	</insert>
+	
+	<update id="deleteReview" parameterType="int">
+		update review
+		set review_del_flag='Y'
+		where review_no=#{reviewNo}
+	</update>
+	
+	<select id="selectStoreNoByReview" parameterType="int" resultType="int">
+		select store_no
+		from review
+		where review_no=#{reviewNo}	
+	</select>
+	
+	<update id="reviewLike" parameterType="int">
+		update review
+		set review_like=review_like+1
+		where review_no=#{reviewNo}	
+	</update>
+	
+	<select id="selectReviewComment" resultType="memberReviewCommentVo" parameterType="int">
+		select * from
+		reviewComment
+		where store_no=#{storeNo}	
+	</select>
+	
+	<select id="myReviewList" resultType="memberReviewVo" parameterType="int">
+		select r.*,(select distinct menu_name from hyorderDetailview d where  r.ORDERS_NO = d.ORDERS_NO and rownum=1) as menu_name,
+		(select store_name from stores s where r.store_no=s.store_no) as store_Name,
+		(select count(distinct menu_name) from hyorderdetailview d where r.orders_no=d.orders_no group by orders_no) as menu_count
+		from
+		review r
+		where member_no=#{memberNo}
+		and REVIEW_REPORT='N'
+		and REVIEW_DEL_FLAG='N'
+	</select>
+	
+	<select id="myReviewComment" resultType="memberReviewCommentVo" parameterType="int">
+		select r.* from reviewcomment r,review re
+		where r.REVIEW_NO = re.REVIEW_NO
+		and member_no=#{memberNo}
+	</select>
+</mapper>

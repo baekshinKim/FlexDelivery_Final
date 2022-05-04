@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="config.mybatis.mapper.oracle.ownerreviewcomment">
+
+	<insert id="insertComm" parameterType="ownerReviewCommentVo">
+		insert into
+		REVIEWCOMMENT(REVIEW_NO,STORE_NO,R_COMMENT_CONTENT)
+		values(#{reviewNo},#{storeNo},#{rCommentContent})
+	</insert>
+
+	<!-- review 변경함 20210217 소정 
+	 -->
+	<select id="selectReView" parameterType="ownerReviewSearchVo" resultType="map">
+		select *
+		from
+		(
+		    select A.*, rownum as RNUM
+		    from
+		    (
+		        select r.*,(select member_id from member m where r.MEMBER_NO=m.MEMBER_NO) as member_id,
+			    (select count(distinct menu_name) from hyorderdetailview d where r.orders_no=d.orders_no group by orders_no) as menu_count,
+			    rc.R_COMMENT_REGDATE,rc.R_COMMENT_CONTENT
+			    from review r left join reviewcomment rc
+			    on r.REVIEW_NO = rc.REVIEW_NO
+			    where r.store_no=#{storeNo} and review_del_flag='N'
+                <![CDATA[
+				and REVIEW_REGDATE >= #{startDay} and
+				REVIEW_REGDATE< to_date(#{endDay})+1
+				]]>
+				
+                order by r.REVIEW_NO desc
+		    )A
+		)
+		<![CDATA[
+		where RNUM > #{firstRecordIndex} 
+		and RNUM <= #{firstRecordIndex} + #{recordCountPerPage}
+		]]>
+	</select>
+
+	<select id="getTotalRecord" parameterType="ownerReviewSearchVo" resultType="int">
+		select count(*) from review
+		<![CDATA[
+		where REVIEW_REGDATE >= #{startDay} and
+		REVIEW_REGDATE< to_date(#{endDay})+1
+		]]>
+		and store_no=#{storeNo}
+		and review_del_flag='N'
+	</select>
+
+	<select id="memberInfoView" parameterType="int" resultType="map">
+		select * from LSJreviewidView where store_no=#{storeNo} 
+	</select>
+
+	<delete id="deleteComm" parameterType="int">
+		delete from reviewcomment where review_no=#{reviewNo}
+	</delete>
+
+	<select id="selectByNo" parameterType="int" resultType="ownerReviewCommentVo">
+		select * from reviewcomment where review_no=#{reviewNo}
+	</select>
+
+	<update id="updateComm" parameterType="ownerReviewCommentVo">
+		update reviewcomment
+		set R_COMMENT_CONTENT=#{rCommentContent}
+		where review_no=#{reviewNo}
+	</update>
+	
+	<!-- 미답변  -->
+	<select id="Nocomment" parameterType="int" resultType="map">
+     select r.*,(select member_id from member m where r.MEMBER_NO=m.MEMBER_NO) as member_id,
+    (select count(distinct menu_name) from hyorderdetailview d where r.orders_no=d.orders_no group by orders_no) as menu_count,
+    rc.R_COMMENT_REGDATE,rc.R_COMMENT_CONTENT
+    from review r left join reviewcomment rc
+    on r.REVIEW_NO = rc.REVIEW_NO
+    where r.store_no=#{storeNo}
+    and rc.R_COMMENT_CONTENT is null
+    and  r.REVIEW_REPORT='N'
+    order by r.review_no desc
+	</select>
+
+	<select id="NocmtTotalRecord" parameterType="int" resultType="int">
+		 select count(*) from review
+	    r left join reviewcomment c
+	    on r.review_no=c.review_no
+	    where r.store_no=#{storeNo} 
+	    and c.r_comment_content is null
+	    and r.review_report='N'
+	</select>
+	
+	<!-- 차단  -->
+	<select id="blockcmt" parameterType="int" resultType="map">
+		select r.*,(select member_id from member m where r.MEMBER_NO=m.MEMBER_NO) as member_id,
+	    (select count(distinct menu_name) from hyorderdetailview d where r.orders_no=d.orders_no group by orders_no) as menu_count,
+	    rc.R_COMMENT_REGDATE,rc.R_COMMENT_CONTENT
+	    from review r left join reviewcomment rc
+	    on r.REVIEW_NO = rc.REVIEW_NO
+	    where r.store_no=#{storeNo}
+	    and rc.R_COMMENT_CONTENT is null
+      	 and r.REVIEW_REPORT='Y'
+     	 order by r.review_no desc
+	</select>
+
+	<select id="blockTotalRecord" parameterType="int" resultType="int">
+		select count(*) from review
+         where store_no=#{storeNo}  and REVIEW_REPORT='Y'
+	</select>
+	
+	<select id="selectAll" parameterType="int" resultType="map">
+	select r.*,(select member_id from member m where r.MEMBER_NO=m.MEMBER_NO) as member_id,
+    (select count(distinct menu_name) from hyorderdetailview d where r.orders_no=d.orders_no group by orders_no) as menu_count,
+    rc.R_COMMENT_REGDATE,rc.R_COMMENT_CONTENT
+    from review r left join reviewcomment rc
+    on r.REVIEW_NO = rc.REVIEW_NO
+    where r.store_no=#{storeNo}
+    order by r.review_no desc
+	</select>
+	
+	<select id="reviewReting" parameterType="int" resultType="map">
+	select b.countNum as "countNum", NVL(sum(a.reviewCount),0) as "many"
+	from
+	(select review_rating, count(*) as reviewCount from review where store_no=#{storeNo} group by review_rating) a ,
+	   <![CDATA[
+	(select level as countNum from dual  connect By level<=5 and level >=1) b  
+	where b.countNum = a.review_rating(+)
+	]]>
+	group by b.countNum
+	order by b.countNum
+	</select>
+	
+	<update id="reviewSingo" parameterType="int">
+		update review
+		set review_report='Y', report_date=sysdate
+		where review_no=#{reviewNo}
+	</update>
+</mapper>

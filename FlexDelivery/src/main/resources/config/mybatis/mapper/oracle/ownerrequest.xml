@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.request">
+<!-- 4가지 불러와야하는데 스토어 먼저 어그리 타입까지 받으려고 올브이오 사용  -->
+	<select id="selectRegi" parameterType="int" resultType="map">
+		select r.* , a.a_agree_type
+		from ADMINAGREE a left join ownerregister r
+		on a.a_agree_no=r.a_agree_no
+        where r.owner_no=#{ownerNo}
+	</select>
+	
+	<select id="selectStore" parameterType="int" resultType="map">
+		select s.* , a.a_agree_type
+		from ADMINAGREE a left join stores s
+		on a.a_agree_no=s.a_agree_no
+        where s.owner_no=#{ownerNo}
+	</select>
+	
+	<select id="selectAd" parameterType="int" resultType="map">
+		select a.*, s.owner_no
+		from storead a join stores s
+		on a.store_no=s.store_no
+		where owner_no=#{ownerNo}
+		order by storead_regdate desc
+	</select>
+	
+	<select id="selectTemp" parameterType="int" resultType="map">
+		select * from temporary
+		where owner_no=#{ownerNo}
+		order by T_regdate desc
+	</select>
+	
+	<!-- resultMap 으로 해결 안 될 거 같아서 웨어조건으로 츄라이  -->
+		<select id="selectStores" parameterType="int" resultType="map">
+		select * from LSJAgreeListView2
+		where OWNER_NO=#{ownerNo}
+		order by store_regdate desc
+	</select>
+	
+	<select id="selectRegiVo" parameterType="long" resultType="ownerRegisterVo">
+		select * from ownerregister where o_register_no=#{oRegisterNo}
+	</select>
+	
+	<select id="selectStoresVO" parameterType="int" resultType="ownerStoresVo">
+		select s.* ,c.LOCATION_NAME, l.L_CATEGORY_NAME
+		from STORES s join LOCATION c
+		on s.LOCATION_NO=c.LOCATION_NO
+        join LARGECATEGORY l
+        on s.L_CATEGORY_NO=l.L_CATEGORY_NO
+        where s.store_no=#{storeNo}
+	</select>
+	
+	<select id="selectAD" parameterType="int" resultType="ownerStoreAdVo">
+		select * from storead where storead_no=#{storeadNo}
+	</select>
+	
+	<!-- tempstore에는 라지 카테고리 번호가 없다 ! 어디서 바꾸지 ?  -->
+	<select id="selectTempVO" parameterType="int" resultType="ownerTemporaryVo">
+		select t.* ,c.LOCATION_NAME
+		from TEMPORARY t left join LOCATION c
+		on t.LOCATION_NO=c.LOCATION_NO
+        where t.t_no=#{tNo}
+	</select>
+	
+	<!-- 삭제 요청 시 A_AGREE_NO 2 로 변경  -->
+	<update id="updateRegi" parameterType="long">
+		update ownerregister
+		set a_agree_no=2
+		where o_register_no=#{oRegisterNo}
+	</update>
+	
+	<update id="updateStore" parameterType="int">
+		update STORES
+		set a_agree_no=2
+		where store_no=#{storeNo}
+	</update>
+	
+<!-- 광고 취소는 광고 페이지에서 ?  -->
+	
+	<update id="updateTempstore" parameterType="int">
+		update TEMPORARY
+		set a_agree_no=2
+		where t_no=#{tNo}
+	</update>
+	
+	<select id="selectPwd" parameterType="int" resultType="string">
+		select owner_pwd from owner where owner_no=#{ownerNo}
+	</select>
+	
+	<!-- 인덱스에서 갯수 세기  -->
+	<select id="selectAgree1" parameterType="int" resultType="int">
+	select count(*) from stores where owner_no=#{ownerNo} and a_agree_no=1
+	</select>
+	<select id="ownerregistercnt1" parameterType="int" resultType="int">
+	select count(*) from ownerregister where owner_no=#{ownerNo}  and a_agree_no=1
+	</select>
+	<select id="tempcnt1" parameterType="int" resultType="int">
+	select count(*) from temporary where owner_no=#{ownerNo}  and a_agree_no=1 or a_agree_no=5
+	</select>
+	<select id="adcnt1" parameterType="int" resultType="int">
+		select count(*) from storead a join stores s
+		on a.store_no=s.store_no
+		where s.owner_no=#{ownerNo} and AD_PAY_FLAG='N'
+	</select>
+	
+	
+	<select id="selectAgree2" parameterType="int" resultType="int">
+	select count(*) from stores where owner_no=#{ownerNo} and a_agree_no=2
+	</select>
+	<select id="ownerregistercnt2" parameterType="int" resultType="int">
+	select count(*) from ownerregister where owner_no=#{ownerNo}  and a_agree_no=2
+	</select>
+	<select id="tempcnt2" parameterType="int" resultType="int">
+	select count(*) from temporary where owner_no=#{ownerNo}  and a_agree_no=2
+	</select>
+	
+	<select id="selectAgree3" parameterType="int" resultType="int">
+	select count(*) from stores where owner_no=#{ownerNo} and a_agree_no=3
+	</select>
+	<select id="ownerregistercnt3" parameterType="int" resultType="int">
+	select count(*) from ownerregister where owner_no=#{ownerNo}  and a_agree_no=3
+	</select>
+	<select id="tempcnt3" parameterType="int" resultType="int">
+	select count(*) from temporary where owner_no=#{ownerNo}  and a_agree_no=3 or a_agree_no=6
+	</select>
+	<select id="adcnt3" parameterType="int" resultType="int">
+		select count(*) from storead a join stores s
+		on a.store_no=s.store_no
+		where s.owner_no=#{ownerNo} and AD_PAY_FLAG='Y'
+	</select>
+	
+	
+	<select id="selectAgree4" parameterType="int" resultType="int">
+	select count(*) from stores where owner_no=#{ownerNo} and a_agree_no=4
+	</select>
+	<select id="ownerregistercnt4" parameterType="int" resultType="int">
+	select count(*) from ownerregister where owner_no=#{ownerNo}  and a_agree_no=4
+	</select>
+	<select id="tempcnt4" parameterType="int" resultType="int">
+	select count(*) from temporary where owner_no=#{ownerNo}  and a_agree_no=4 or a_agree_no=7
+	</select>
+	
+</mapper>

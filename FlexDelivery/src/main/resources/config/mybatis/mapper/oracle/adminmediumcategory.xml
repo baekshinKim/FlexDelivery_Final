@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminmediumcategory">
+	<!-- <sql id="searchWhere">
+		<where>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				${searchCondition} like '%' || #{searchKeyword} || '%'
+			</if>
+		</where>	
+	</sql> -->
+	
+	<insert id="insertMediumcategory" parameterType="adminMediumCategoryVo">
+		<selectKey keyProperty="mCategoryNo" resultType="int" order="BEFORE">
+			select MEDIUMCATEGORY_seq.nextval from dual 
+		</selectKey>
+		
+		insert into MEDIUMCATEGORY(M_CATEGORY_NO, M_CATEGORY_NAME, L_CATEGORY_NO, WEATHER_NO)
+		values(#{mCategoryNo} ,#{mCategoryName}, #{lCategoryNo}, #{weatherNo})
+	</insert>
+	
+	<select id="selectAll" parameterType="adminMediumCategoryVo" resultType="adminMediumCategoryVo">
+		select M_CATEGORY_NO, M_CATEGORY_NAME, L_CATEGORY_NO, WEATHER_NO from MEDIUMCATEGORY
+		order by M_CATEGORY_NO desc
+	</select>
+	
+	<select id="selectAll2" parameterType="adminMediumCategoryViewVo" resultType="adminMediumCategoryViewVo">
+		select l.L_CATEGORY_NO, l.L_CATEGORY_NAME, 
+		m.m_category_no, m.m_category_name, w.WEATHER_NO, w.WEATHER_NAME
+		from LARGECATEGORY l left join MEDIUMCATEGORY m
+		on l.L_CATEGORY_NO=m.L_CATEGORY_NO
+		left join WEATHER w
+		on m.WEATHER_NO=w.WEATHER_NO	
+		order by m.M_CATEGORY_NO desc
+	</select>
+	
+	<select id="checkDu" parameterType="string" resultType="int">
+		select count(M_CATEGORY_NAME) from MEDIUMCATEGORY 
+		where M_CATEGORY_NAME like #{mCategoryName}
+	</select>
+	 
+	<!-- 
+	
+	<select id="selectTotalRecord" parameterType="searchVo"
+		resultType="int">
+		select count(*) from reBoard
+		<include refid="searchWhere"></include>
+	</select>
+	-->
+	
+	<!-- <select id="selectByNo" parameterType="int" resultType="AdminLargeCategoryVo">
+		select L_CATEGORY_NO, L_CATEGORY_NAME, L_CATEGORY_FILENAME from LARGECATEGORY where L_CATEGORY_NO=#{lCategoryNo}
+	</select>-->
+	
+	<update id="updateMediumcategory" parameterType="adminMediumCategoryVo">
+		update MEDIUMCATEGORY
+		set M_CATEGORY_NAME=#{mCategoryName}, L_CATEGORY_NO=#{lCategoryNo}, WEATHER_NO=#{weatherNo}
+		where M_CATEGORY_NO=#{mCategoryNo}
+	</update>
+	
+	<delete id="deleteMediumcategory" parameterType="adminMediumCategoryVo">
+		delete from MEDIUMCATEGORY where M_CATEGORY_NO=#{mCategoryNo}
+	</delete>
+
+	
+</mapper>

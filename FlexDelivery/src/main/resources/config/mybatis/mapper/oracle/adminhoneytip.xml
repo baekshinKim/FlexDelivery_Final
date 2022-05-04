@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminhoneytip">
+
+	<select id="selectAll" parameterType="adminHoneytipVo" resultType="adminHoneytipVo">
+		select HONEYTIP_NO, HONEYTIP_TITLE, HONEYTIP_CONTENT, HONEYTIP_THUMBNAIL, HONEYTIP_REGDATE from HONEYTIP
+		order by HONEYTIP_NO desc
+	</select>
+	
+	<select id="selectByNo" parameterType="int" resultType="adminHoneytipVo">
+		select HONEYTIP_NO, HONEYTIP_TITLE, HONEYTIP_CONTENT, HONEYTIP_THUMBNAIL, HONEYTIP_REGDATE from HONEYTIP
+		where HONEYTIP_NO=#{honeytipNo}	
+	</select>
+	
+	<!-- <select id="selectAll2" parameterType="adminGiftCategoryProductVo" resultType="adminGiftCategoryProductVo">
+		select p.G_PRODUCT_NO, p.G_PRODUCT_NAME, p.G_PRODUCT_FILENAME, c.G_CATEGORY_NAME
+		from GIFTCATEGORY c right join GIFTPRODUCT p
+		on c.G_CATEGORY_NO=p.G_CATEGORY_NO
+		order by p.G_CATEGORY_NO
+	</select> -->
+	
+	
+	
+	<insert id="insertHoneytip" parameterType="adminHoneytipVo" >
+		<selectKey keyProperty="honeytipNo" resultType="int" order="BEFORE">
+			select HONEYTIP_seq.nextval from dual
+		</selectKey>
+		insert into HONEYTIP(HONEYTIP_NO, HONEYTIP_TITLE, HONEYTIP_CONTENT, HONEYTIP_THUMBNAIL, HONEYTIP_REGDATE)
+		values(#{honeytipNo}, #{honeytipTitle}, #{honeytipContent}, #{honeytipThumbnail}, sysdate)
+	</insert>
+	
+	<update id="updateHoneytip" parameterType="adminHoneytipVo">
+		update HONEYTIP
+		set HONEYTIP_TITLE=#{honeytipTitle}, HONEYTIP_CONTENT=#{honeytipContent}, HONEYTIP_THUMBNAIL=#{honeytipThumbnail}
+		where HONEYTIP_NO=#{honeytipNo}
+	</update>
+	
+	<delete id="deleteHoneytip" parameterType="adminHoneytipVo">
+		delete from HONEYTIP
+		where HONEYTIP_NO=#{honeytipNo}
+	</delete>
+	
+	<!-- 점포에서 메인에 4개만 노출 가능하게 추가하였습니다 ! -->
+	<select id="ownerHoneyTip" resultType="adminHoneytipVo">
+	select *
+		from
+		(
+		    select A.*, rownum as RNUM
+		    from
+		    (
+		        select * from honeytip
+                order by honeytip_no desc
+		    )A
+		)
+	
+	<![CDATA[
+		where RNUM <= 4
+	 ]]>
+	</select>
+	
+</mapper>

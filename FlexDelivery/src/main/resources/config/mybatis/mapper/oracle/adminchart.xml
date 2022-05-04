@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminchart">
+
+	<select id="selectCurJoin" resultType="map">
+		select sum(a.AUTHORITY_NO) as curAuth, nvl(sum(a.curTotalMember),0) as cntMem
+		from
+		    (select AUTHORITY_NO, nvl(count(MEMBER_NO), 0) as curTotalMember from MEMBER
+		    where MEMBER_OUTDATE is null
+		    and AUTHORITY_NO in (1, 2, 3)
+		    group by AUTHORITY_NO)a
+		
+		union all
+		
+		select sum(b.AUTHORITY_NO) as curAuthority, nvl(sum(b.curTotalOwner),0) as curTotal
+		from
+		    (select AUTHORITY_NO, nvl(count(OWNER_NO), 0) as curTotalOwner from OWNER
+		    where OWNER_OUTDATE is null
+		    and AUTHORITY_NO in (4, 5)
+		    group by AUTHORITY_NO)b
+	</select>
+
+	<select id="selectCurLeave" resultType="map">
+	select sum(a.AUTHORITY_NO) as curAuth, nvl(sum(a.curTotalMember),0) as cntMem
+		from
+		    (select AUTHORITY_NO, nvl(count(MEMBER_NO),0) as curTotalMember from MEMBER
+		    where MEMBER_OUTDATE is not null
+		    and AUTHORITY_NO in (1, 2, 3)
+		    group by AUTHORITY_NO)a
+		
+		union all
+		
+		select sum(b.AUTHORITY_NO) as curAuthority, nvl(sum(b.curTotalOwner),0) as curTotal
+		from
+		    (select AUTHORITY_NO, nvl(count(OWNER_NO),0) as curTotalOwner from OWNER
+		    where OWNER_OUTDATE is not null
+		    and AUTHORITY_NO in (4, 5)
+		    group by AUTHORITY_NO)b
+	</select>
+
+	<select id="selectCurOwner" resultType="map">
+		select a.AUTHORITY_NAME, count(o.AUTHORITY_NO) as curOwner
+		from AUTHORITY a left join OWNER o
+		on a.AUTHORITY_NO=o.AUTHORITY_NO
+		where a.AUTHORITY_NO in (4, 5)
+		and o.OWNER_OUTDATE is null
+		group by a.AUTHORITY_NAME
+	</select>
+
+	<select id="selectCurAd" resultType="map">
+		select a.ADVERTISE_NAME, nvl(count(s.STORE_NO),0) as cntAd
+		from STOREAD s right join ADVERTISE a
+		on s.ADVERTISE_NO=a.ADVERTISE_NO
+		where s.AD_PAY_FLAG='Y'
+		and to_char(s.AD_VALIDATE, 'YYYY-MM-DD') >= to_char(sysdate, 'YYYY-MM-DD')
+		group by a.ADVERTISE_NAME
+	</select>
+
+	<select id="selectStoreCoupon" resultType="map">
+		select nvl(count(STORE_NO),0) as cntAdStore
+		from STORES
+		where STORE_NO not in 
+		(select distinct scb.STORE_NO
+		from STORECOUPONBOX scb)
+		
+		union all
+		
+		select nvl(count(distinct scb.STORE_NO),0) as adStore
+		from STORECOUPONBOX scb
+	</select>
+
+	<select id="selectRCoupon" resultType="map">
+		select s.R_COUPON_NO, r.R_COUPON_DC, nvl(count(s.R_COUPON_NO),0) as cntRCou
+		from STORECOUPONBOX s left join REGULARCOUPON r
+		on s.R_COUPON_NO=r.R_COUPON_NO
+		group by s.R_COUPON_NO, r.R_COUPON_DC
+	</select>
+	
+	<select id="selectCurOrder" resultType="map">
+		select nvl(count(ORDERS_NO), 0) as countOrders, nvl(sum(ORDERS_PRICE),0) as sumPrice
+		from ORDERS 
+		where to_char(ORDERS_DATE, 'YYYY-MM-DD')=to_char(sysdate, 'YYYY-MM-DD')
+		    and O_STATUS_NO=4
+	</select>
+	<select id="selectCurOrder2" resultType="map">
+		select nvl(count(ORDERS_NO), 0) as countOrders, nvl(sum(ORDERS_PRICE),0) as sumPrice
+		from ORDERS 
+		where to_char(ORDERS_DATE, 'YYYY-MM')=to_char(sysdate, 'YYYY-MM')
+		    and O_STATUS_NO=4
+	</select>
+	
+	<select id="selectCurLCategory" resultType="map">
+		select l.L_CATEGORY_NAME, nvl(count(o.ORDERS_NO),0) as orderCnt
+		from orders o left join ORDERDETAIL od
+		on o.ORDERS_NO=od.ORDERS_NO
+		    left join MENU m
+		    on od.MENU_NO=m.MENU_NO
+		        left join STOREMENUGROUP smg
+		        on m.S_M_GROUP_NO=smg.S_M_GROUP_NO
+		            left join STORES s
+		            on smg.STORE_NO=s.STORE_NO
+		                left join LARGECATEGORY l
+		                on s.L_CATEGORY_NO=l.L_CATEGORY_NO
+		where to_char(ORDERS_DATE, 'YYYY-MM')=to_char(sysdate, 'YYYY-MM')
+		    and O_STATUS_NO=4
+		group by l.L_CATEGORY_NAME
+	</select>
+	
+	<select id="selectGCategory" resultType="map">
+		select c.G_CATEGORY_NAME, count(p.G_CATEGORY_NO) as cntCategory
+		from GIFT g left join GIFTPRODUCT p
+		on g.G_PRODUCT_NO=p.G_PRODUCT_NO
+		    right join GIFTCATEGORY c
+		    on p.G_CATEGORY_NO=c.G_CATEGORY_NO
+		group by c.G_CATEGORY_NAME
+	</select>
+	
+	<select id="selectGPrice" resultType="map">
+		select p.G_P_TYPE_PRICE, count(g.G_P_TYPE_NO)as cntPrice
+		from GIFT g right join GIFTPRICETYPE p
+		on g.G_P_TYPE_NO=p.G_P_TYPE_NO
+		group by p.G_P_TYPE_PRICE
+	</select>
+	
+	<select id="selectGProduct" resultType="map">
+		select (select g_p_type_price from giftpricetype gp where gp.g_p_type_no=g.g_p_type_no) as g_p_type_Price,
+			(select g_product_name from giftproduct where g.g_product_no=g_product_no) as g_product_name, count(*),
+			(
+			    select g_category_name
+			    from giftcategory c,giftproduct p
+			    where c.G_CATEGORY_NO = p.G_CATEGORY_NO
+			    and p.G_PRODUCT_NO=g.g_product_no
+			) as g_category_name
+			from gift g
+			group by g.G_P_TYPE_NO,g.G_PRODUCT_NO
+	</select>
+	
+	<select id="selectGProduct5" resultType="map">
+		select * from
+      (
+          select a.*, rownum as rnum
+          from
+          (
+              select (select g_p_type_price from giftpricetype gp where gp.g_p_type_no=g.g_p_type_no) as g_p_type_Price,
+              (select g_product_name from giftproduct where g.g_product_no=g_product_no) as g_product_name, count(*) as count,
+              (
+                  select g_category_name
+                  from giftcategory c, giftproduct p
+                  where c.G_CATEGORY_NO = p.G_CATEGORY_NO
+                  and p.G_PRODUCT_NO=g.g_product_no
+              ) as g_category_name
+              from gift g
+              group by g.G_P_TYPE_NO,g.G_PRODUCT_NO
+              order by count desc
+          )a
+      )
+      where 5>=rnum
+	</select>
+
+</mapper>

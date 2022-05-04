@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.admin">
+	<select id="selectPwd" parameterType="String" resultType="String">
+		select admin_pwd from admin where admin_id=#{userid}
+	</select>
+	
+	<select id="selectAdmin" parameterType="String" resultType="adminVo">
+	select * from admin where admin_id=#{userid}
+	</select>
+</mapper>

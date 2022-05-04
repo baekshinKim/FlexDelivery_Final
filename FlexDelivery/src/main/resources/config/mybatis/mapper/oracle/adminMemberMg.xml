@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminMemberMg">
+	<select id="memberList" resultType="memberVo">
+		select member_name, member_id, member_address, member_address_detail, member_outdate, 
+      		   member_hp1, member_hp2, member_hp3, member_email1, member_email2
+		from member
+		order by member_no desc
+	</select>
+	
+</mapper>

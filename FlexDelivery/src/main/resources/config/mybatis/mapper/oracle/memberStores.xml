@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberStores">
+	<!-- create or replace view hyStoreList
+        as
+        select s.*
+        ,(select count(*) from review r where r.STORE_NO=s.store_no) as review_count,
+        (select round(nvl(avg(r.REVIEW_RATING),0),1) from review r where r.STORE_NO=s.store_no and r.REVIEW_DEL_FLAG='N' and r.REVIEW_REPORT='N') as review_rating,
+        (select count(*) from storeCouponBox b where b.STORE_NO=s.store_no) as coupon_exist
+		from
+		stores s; -->
+
+
+	<select id="selectFlexAdStores" parameterType="map" resultType="memberStoresVo">
+		select distinct s.*
+		from hyStoreList s,storeAd a
+		where s.STORE_NO = a.STORE_NO 
+		and a.ad_validate>sysdate 
+		and a.AD_PAY_FLAG='Y'
+		and s.LOCATION_NO=#{locationNo}
+		and s.l_category_No=#{lCategoryNo}
+		and s.a_agree_no=3
+		and s.store_outdate is null
+		and a.advertise_no=1
+	</select>
+	<select id="selectOpenAdStores" parameterType="map" resultType="memberStoresVo">
+		select distinct s.*
+		from hyStoreList s,storeAd a
+		where s.STORE_NO = a.STORE_NO 
+		and a.ad_validate>sysdate 
+		and a.AD_PAY_FLAG='Y'
+		and s.LOCATION_NO=#{locationNo}
+		and s.l_category_No=#{lCategoryNo}
+		and s.a_agree_no=3
+		and s.store_outdate is null
+		and a.advertise_no=2
+	</select>
+	<select id="categorySlider" resultType="adminLargeCategoryVo">
+		select * from largeCategory
+	</select>
+	
+	<select id="selectAllStores" parameterType="map" resultType="memberStoresVo">
+		select *
+		from 
+		(
+		    select s.*,rownum as RNUM
+		    from
+		    		(
+			    		select *
+			            from hyStoreList 
+			            where LOCATION_NO=#{locationNo}
+			            and l_category_No=#{lCategoryNo}
+			            and a_agree_no=3
+			            and store_outdate is null
+		            )s
+		)A
+		<![CDATA[
+		where RNUM>=#{startIndex} and RNUM<=#{lastIndex}
+		]]>
+	</select>
+	
+	<select id="selectAllStoresCount" parameterType="map" resultType="int">
+		select count(*)
+        from hyStoreList s
+        where s.LOCATION_NO=#{locationNo}
+        and s.l_category_No=#{lCategoryNo}
+        and s.a_agree_no=3
+        and s.store_outdate is null
+	</select>
+	
+	<select id="selectStoresDetail" parameterType="int" resultType="memberStoresVo">
+		select * from hyStoreList where store_No=#{storeNo}
+	</select>
+	
+	<select id="selectLikeStore" parameterType="int" resultType="memberLikeStoreVo">
+		select * from likeStore where member_no=#{memberNo}
+	</select>
+	
+	<select id="chkLike" parameterType="map" resultType="int">
+		select count(*)	from likeStore where member_no=#{memberNo} and store_no=#{storeNo}	
+	</select>
+	
+	<insert id="addLike" parameterType="memberLikeStoreVo">
+		insert into likeStore
+		values(#{memberNo},#{storeNo})
+	</insert>
+	
+	<delete id="delLike" parameterType="memberLikeStoreVo">
+		delete likeStore
+		where member_No=#{memberNo} and store_No=#{storeNo}
+	</delete>
+	
+	<select id="likeStoreList" parameterType="int" resultType="memberStoresVo">
+		select h.* 
+		from likestore l , hystoreList h
+		where l.STORE_NO = h.STORE_NO
+		and member_no=#{memberNo}
+	</select>
+	
+	<select id="today" resultType="int">
+		select to_char(sysdate,'d') from dual
+	</select>
+	
+	<!-- <resultMap type="orderAllVo" id="orderListResultMap">
+		<association property="orderVo" column="orderNo" javaType="OrderVO">
+			<id property="orderNo" jdbcType="BIGINT" column="orderNO"  />
+			<result property="customerId" jdbcType="VARCHAR" column="customerId" />
+			<result property="totalPrice" jdbcType="BIGINT" column="totalPrice" />
+			<result property="deliveryStatus" jdbcType="VARCHAR" column="deliveryStatuse" />
+			<result property="orderDate" jdbcType="TIMESTAMP" column="orderDate" />
+			<result property="paymentEndDate" jdbcType="TIMESTAMP" column="paymentEndDate" />
+			<result property="deliveryDate" jdbcType="TIMESTAMP" column="deliveryDate" />
+			<result property="message" jdbcType="VARCHAR" column="message" />
+			<result property="customerName" jdbcType="VARCHAR" column="cutomerName" />
+			<result property="hp" jdbcType="VARCHAR" column="hp" />
+			<result property="zipcode" jdbcType="VARCHAR" column="zipcode" />
+			<result property="address" jdbcType="VARCHAR" column="address" />
+			<result property="addressDetail" jdbcType="VARCHAR" column="addressDetail" />
+		</association>
+		<collection property="orderDetailsList" select="selectOrderPd" column="orderNo" javaType="ArrayList" ofType="map" />
+	</resultMap>
+	
+	<select id="selectOrderLists" parameterType="dateSearchVo" resultMap="orderListResultMap">
+		SELECT *
+		FROM (
+		SELECT ROWNUM RNUM, A.*
+			FROM (
+				select * from orders
+				where orderDate>=#{startDay}
+				<![CDATA[
+				and orderDate< to_date(#{endDay})+1
+				]]>
+				<if test="customerId != null and customerId != '' ">
+					and customerId=#{customerId}
+				</if>
+				order by orderno desc
+			) A
+		)
+		<![CDATA[
+		WHERE RNUM > #{firstRecordIndex}
+		AND RNUM <= #{firstRecordIndex} + #{recordCountPerPage} ]]>	
+	</select>
+	
+	<select id="selectOrderPd" parameterType="int" resultType="map">
+		select * from orderProductView
+		where orderno=#{orderNo}	
+	</select> -->
+</mapper>

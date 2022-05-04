@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberBoard">
+	<sql id="searchKeyword">
+		<where>
+			<if test="searchKeyword!=null and searchKeyword!=''">
+				board_title like '%' || #{searchKeyword} || '%'
+				or
+				board_content like '%' || #{searchKeyword} || '%'
+			</if>
+		</where>
+	</sql>
+	<select id="selectEvent" parameterType="memberBoardSearchVo" resultType="memberBoardVo">
+		select * from
+		(
+			select rownum as rn, A.* from
+				(
+					select * from BOARD
+					where BOARD_HEAD='이벤트' 
+					and AUTHORITY_NO in (1,2,3)
+					order by board_regdate desc
+				)A
+				<include refid="searchKeyword"></include>
+			)
+			where rn>#{firstIndex}
+			and #{firstIndex}+#{countPerPage}>=rn
+	</select>
+	<select id="selectNotice" parameterType="memberBoardSearchVo" resultType="memberBoardVo">
+		select * from
+			(
+			select rownum as rn, A.* from
+				(
+					select * from BOARD
+					where BOARD_HEAD='공지사항' 
+					and AUTHORITY_NO in (1,2,3)
+					order by board_regdate desc
+				)A
+			<include refid="searchKeyword"></include>
+			)
+			where rn>#{firstIndex}
+			and #{firstIndex}+#{countPerPage}>=rn
+	</select>
+	<select id="eventCount" parameterType="memberBoardSearchVo" resultType="int">
+		select count(*)
+		from
+		(
+			select * from board
+			where board_head='이벤트'
+			and authority_no in (1,2,3)
+		)
+		<include refid="searchKeyword"></include>
+	</select>
+	
+	<select id="noticeCount" parameterType="memberBoardSearchVo" resultType="int">
+		select count(*)
+		from
+		(
+			select * from board
+			where board_head='공지사항'
+			and authority_no in (1,2,3)
+		)
+		<include refid="searchKeyword"></include>
+	</select>
+	
+	<select id="boardDetail" parameterType="int" resultType="memberBoardVo">
+		select * from board
+		where board_no=#{boardNo}
+	</select>
+	
+	<select id="boardMain" resultType="memberBoardVo">
+		select * from board
+		where board_thumbnail is not null
+		and authority_no in (1,2,3)
+		<![CDATA[
+		and rownum<=5
+		]]>
+	</select>
+</mapper>

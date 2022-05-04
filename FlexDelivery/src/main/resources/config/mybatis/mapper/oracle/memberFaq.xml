@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.memberFaq">
+	
+	<select id="selectAll" parameterType="memberFaqVo" resultType="memberFaqVo">
+		select FAQ_NO, F_CATEGORY_NO, FAQ_Q, FAQ_A from FAQ
+		order by FAQ_NO desc
+	</select>	
+
+	<select id="faqSelect" parameterType="int"
+		resultType="memberfaqVo">
+		select * from faq
+		where f_category_no = #{fCategoryNo}
+	</select>
+	
+	<select id="faqCategoryList" resultType="map">
+		select * from faqCategory
+		where authority_no in (1,2,3)
+	</select>
+</mapper>

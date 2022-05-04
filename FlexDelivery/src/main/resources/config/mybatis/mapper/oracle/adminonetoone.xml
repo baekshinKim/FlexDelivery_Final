@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminonetoone">
+
+	<select id="selectAll" parameterType="adminAskVo" resultType="adminAskVo">
+		select ASK_NO, ASK_TITLE, ASK_ID, ASK_CONTENT, ASK_REGDATE,
+		ASK_GROUP_NO, ASK_STEP, ASK_REPLY_FLAG, AUTHORITY_NO from ASK
+		where ASK_STEP=0
+		order by ASK_GROUP_NO desc, ASK_STEP
+	</select>
+	
+	<select id="selectByAuthority" parameterType="int" resultType="adminAskVo">
+		select ASK_NO, ASK_TITLE, ASK_ID, ASK_CONTENT, ASK_REGDATE,
+		ASK_GROUP_NO, ASK_STEP, ASK_REPLY_FLAG, AUTHORITY_NO from ASK
+		where AUTHORITY_NO=#{authorityNo}
+		order by ASK_NO desc, ASK_GROUP_NO desc, ASK_STEP
+	</select>
+
+	<select id="selectByReply" parameterType="string" resultType="adminAskVo">
+		select ASK_NO, ASK_TITLE, ASK_ID, ASK_CONTENT, ASK_REGDATE,
+		ASK_GROUP_NO, ASK_STEP, ASK_REPLY_FLAG, AUTHORITY_NO from ASK
+		where ASK_REPLY_FLAG=#{askReplyFlag}
+		order by ASK_NO desc, ASK_GROUP_NO desc, ASK_STEP
+	</select>
+
+	<select id="selectByNo" parameterType="int" resultType="adminAskVo">
+		select ASK_NO, ASK_TITLE, ASK_ID, ASK_CONTENT, ASK_REGDATE,
+		ASK_GROUP_NO, ASK_STEP, ASK_REPLY_FLAG, AUTHORITY_NO from ASK
+		where ASK_No=#{askNo}
+		order by ASK_NO desc, ASK_GROUP_NO desc, ASK_STEP
+	</select>
+	
+	<select id="selectReplyByNo" parameterType="int" resultType="adminAskVo">
+		select ASK_NO, ASK_TITLE, ASK_ID, ASK_CONTENT, ASK_REGDATE,
+		ASK_GROUP_NO, ASK_STEP, ASK_REPLY_FLAG, AUTHORITY_NO from ASK
+		where ASK_GROUP_No=#{askNo} and ASK_NO!=#{askNo}
+	</select>
+	
+	<select id="selectNewAsk" resultType="map">
+		select count(ASK_NO) as cntAsk from ASK
+		where ASK_STEP=0 and ASK_REPLY_FLAG='N'
+	</select>
+
+	<select id="selectNewAsk2" resultType="int">
+		select count(ASK_NO) as cntAsk from ASK
+		where ASK_STEP=0 and ASK_REPLY_FLAG='N'
+	</select>
+	
+	<update id="updateAsk" parameterType="adminAskVo">
+		update ASK
+		set ASK_REPLY_FLAG=#{askReplyFlag}
+		where ASK_NO=#{askGroupNo} and ASK_STEP=0
+	</update>
+	
+	
+	<insert id="insertAskReply" parameterType="adminAskVo" >
+		<selectKey keyProperty="askNo" resultType="int" order="BEFORE">
+			select ASK_seq.nextval from dual
+		</selectKey>
+		insert into ASK(ASK_NO, ASK_TITLE, ASK_CONTENT, ASK_ID, ASK_GROUP_NO, ASK_STEP, ASK_REPLY_FLAG, AUTHORITY_NO )
+		values(#{askNo}, #{askTitle}, #{askContent}, #{askId}, #{askGroupNo}, #{askStep}, default, #{authorityNo})
+	</insert>
+	
+	<update id="updateAskReply" parameterType="adminAskVo">
+		update ASK
+		set ASK_TITLE=#{askTitle}, ASK_CONTENT=#{askContent}, ASK_GROUP_NO=#{askGroupNo},
+		AUTHORITY_NO=#{authorityNo}
+		where ASK_NO=#{askNo}
+	</update>
+	
+	<delete id="deleteAskReply" parameterType="int">
+		delete from ASK
+		where ASK_NO=#{askNo}
+	</delete>
+	
+	
+</mapper>

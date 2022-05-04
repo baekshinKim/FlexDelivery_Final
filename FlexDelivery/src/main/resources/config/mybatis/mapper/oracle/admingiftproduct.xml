@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.admingiftproduct">
+
+	<select id="selectAll" parameterType="adminGiftProductVo" resultType="adminGiftProductVo">
+		select G_PRODUCT_NO, G_PRODUCT_NAME, G_PRODUCT_FILENAME, G_CATEGORY_NO from GIFTPRODUCT
+		order by G_PRODUCT_NO desc
+	</select>
+	
+	<select id="selectAll2" parameterType="adminGiftCategoryProductVo" resultType="adminGiftCategoryProductVo">
+		select p.G_PRODUCT_NO, p.G_PRODUCT_NAME, p.G_PRODUCT_FILENAME, p.G_CATEGORY_NO, c.G_CATEGORY_NAME
+		from GIFTCATEGORY c right join GIFTPRODUCT p
+		on c.G_CATEGORY_NO=p.G_CATEGORY_NO
+		order by p.G_PRODUCT_NO desc
+	</select>
+	
+	<select id="checkDu" parameterType="string" resultType="int">
+		select count(G_PRODUCT_NAME) from GIFTPRODUCT
+		where G_PRODUCT_NAME like #{gProductName}
+	</select>
+	
+	<select id="selectForAll2" parameterType="int" resultType="adminGiftCategoryProductVo">
+		select p.*, c.G_CATEGORY_NAME
+		from GIFTCATEGORY c right join GIFTPRODUCT p
+		on c.G_CATEGORY_NO=p.G_CATEGORY_NO
+		where p.G_CATEGORY_NO=#{gCategoryNo}
+		order by p.G_PRODUCT_NO desc
+	</select>
+	
+	<insert id="insertGiftProduct" parameterType="adminGiftProductVo" >
+		<selectKey keyProperty="gProductNo" resultType="int" order="BEFORE">
+			select GIFTPRODUCT_seq.nextval from dual
+		</selectKey>
+		insert into GIFTPRODUCT(G_PRODUCT_NO, G_PRODUCT_NAME, G_PRODUCT_FILENAME, G_CATEGORY_NO)
+		values(#{gProductNo}, #{gProductName}, #{gProductFilename}, #{gCategoryNo})
+	</insert>
+	
+	<update id="updateGiftProduct" parameterType="adminGiftProductVo">
+		update GIFTPRODUCT
+		set G_PRODUCT_NAME=#{gProductName}, G_PRODUCT_FILEName=#{gProductFilename}, G_CATEGORY_NO=#{gCategoryNo}
+		where G_PRODUCT_NO=#{gProductNo}
+	</update>
+	
+	<delete id="deleteGiftProduct" parameterType="adminGiftProductVo">
+		delete from GIFTPRODUCT
+		where G_PRODUCT_NO=#{gProductNo}
+	</delete>
+	
+</mapper>

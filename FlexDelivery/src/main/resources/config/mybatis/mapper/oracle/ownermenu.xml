@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.ownermenu">
+
+	
+
+<!-- 	create or replace view jaMenuAllView
+	as
+	  select m.* , g.S_M_GROUP_NAME, g.STORE_NO, s.L_CATEGORY_NO , s.A_AGREE_NO
+	     from menu m, storemenugroup g, stores s 
+	     where m.S_M_GROUP_NO = g.S_M_GROUP_NO and g.STORE_NO = s.STORE_NO; -->
+	    <!-- menu groupmenu stores 합친 뷰 -->
+	    
+	  <select id="selectMenuAllView" parameterType="int" resultType="ownerMenuAllVo">
+		select *
+		from
+		(
+		    select A.*,rownum as RNUM
+		    from
+		    (	
+					select * from jaMenuAllView
+				<![CDATA[
+					where store_no=#{storeNo} and a_agree_no=3 
+					order by S_M_GROUP_No , MENU_NAME
+			  	]]>
+			   )A
+		)
+	 
+	 </select> 
+	 
+	 
+	 <select id="selectMenuViewBymenuNo" parameterType="int" resultType="ownerMenuAllVo">
+			select * from jaMenuAllView
+		<![CDATA[
+			where menu_no=#{menuNo} and a_agree_no=3
+	  	]]>
+	 </select> 
+	 
+	 
+	 
+	  
+	 <select id="selectMenuViewBymenuGroupNo" parameterType="ownerStoreMenuGroupVO" resultType="ownerMenuAllVo">
+			select * from jaMenuAllview
+		<![CDATA[
+			where s_M_GROUP_NO=#{sMGroupNo} and store_NO=#{storeNo}
+	  	]]>
+	  		order by menu_no desc
+	 </select> 
+	 
+	 
+	 <!-- 
+	 	create or replace view jaMenuOptionAllView
+	as
+	  select o.* , r.o_rank_name 
+	     from menu m, menuoption o, optionRank r
+	     where r.O_RANK_NO = o.O_RANK_NO and m.MENU_NO = o.MENU_NO;
+	 
+	  -->
+	   <!-- menu menuoption optionRank 합친 뷰 -->
+	  <select id="selectMenuOptionAllView" parameterType="int" resultType="ownerMenuOptionAllVo">
+			select * from jaMenuOptionAllView
+		<![CDATA[
+			where menu_no=#{menuNo}
+			order by o_rank_no , m_option_name
+	  	]]>
+	 </select> 
+	
+	
+	<!-- 점포에 따른 메뉴그룹 조회 -->
+	<select id="selectMenuGroupByNo" parameterType="int" resultType="ownerStoreMenuGroupVo">
+		select * from storeMenuGroup
+		where store_no=#{storeNo}
+		order by s_m_group_no
+	</select>
+	
+	<!-- 메뉴 번호에 따른 메뉴그룹조회 -->
+	<select id="selectMenuGroupByGroupNo" parameterType="int" resultType="ownerStoreMenuGroupVo">
+		select * from storeMenuGroup
+		where s_m_group_no=#{sMGroupNo}
+	</select>
+	
+	<!-- 메뉴 그룹 업데이트  -->
+	
+	<update id="updateMenuGroupByNo" parameterType="ownerStoreMenuGroupVo" >
+		update storeMenuGroup
+		set S_M_GROUP_NAME =#{sMGroupName}
+		where S_M_GROUP_NO =#{sMGroupNo} and store_NO=#{storeNo}
+	</update>
+	
+	
+	<delete id="deleteMenuGroupByNo" parameterType="int">
+		delete storeMenuGroup
+		where S_M_GROUP_NO=#{sMGroupNo}
+	</delete>
+	
+	
+	<insert id="insertMenuGroup" parameterType="ownerStoreMenuGroupVo">
+		<selectKey keyProperty="sMGroupNo" resultType="int" order="BEFORE">
+			select STOREMENUGROUP_SEQ.nextval from dual
+		</selectKey>
+			insert into storeMenuGroup(s_m_group_no, s_m_group_name, store_no)
+			values(#{sMGroupNo}, #{sMGroupName}, #{storeNo})
+	</insert>
+	
+	
+	
+	
+	<insert id="insertMenu" parameterType="ownerMenuVo">
+		<selectKey keyProperty="menuNo" resultType="int" order="BEFORE">
+			select menu_seq.nextval from dual
+		</selectKey>
+		insert into menu(Menu_No, Menu_name, Menu_price, menu_img, menu_content, s_m_group_no)
+		values(#{menuNo}, #{menuName}, #{menuPrice}, #{menuImg}, 
+			#{menuContent}, #{sMGroupNo})
+	</insert>
+	
+	
+	
+	
+	<delete id="deleteMenuByNo" parameterType="int">
+		delete Menu
+		where Menu_No=#{menuNo}
+	</delete>
+	
+	
+	<!-- 메뉴 번호에 따른 메뉴그룹조회 -->
+	<select id="selectMenuByMenuNo" parameterType="int" resultType="ownerMenuVo">
+		select * from menu
+		where menu_no=#{menuNo}
+	</select>
+
+
+	<!-- 메뉴 번호에 따른 메뉴그룹조회 -->
+	<select id="selectMenuByGroupNo" parameterType="int" resultType="ownerMenuVo">
+		select * from menu
+		where s_m_group_no=#{sMGroupNo}
+	</select>	
+	
+	
+	<update id="updateMenuByNo" parameterType="ownerMenuVo" >
+		update menu
+		set menu_name=#{menuName} , menu_price=#{menuPrice}, menu_img=#{menuImg}, 
+			menu_content=#{menuContent} , s_M_Group_NO =#{sMGroupNo}
+		where menu_No=#{menuNo}
+	</update>
+	
+	
+	<!-- 메인 메뉴 구하기 -->
+	<select id="selectCountMainMenu" parameterType="int" resultType="int">
+		select count(*) from storeMainMenu
+		where store_No=#{storeNO}
+	</select>
+	
+	<select id="selectMainMenuByStoreNo" parameterType="int" resultType="ownerStoreMainMenuVo">
+		select * from STOREMAINMENU
+		where store_no=#{storeNo}
+	</select>
+	
+	
+	
+	
+	<!-- 
+	create or replace view jaMediumCategoryAllView
+		as select  m.M_CATEGORY_NO, m.M_CATEGORY_NAME , w.WEATHER_NAME, w.WEATHER_NO , l.L_CATEGORY_NO, 
+		    l.L_CATEGORY_NAME, l.L_CATEGORY_FILENAME
+		from mediumcategory m , weather w , largecategory l 
+		where m.L_CATEGORY_NO = l.L_CATEGORY_NO and m.WEATHER_NO = w.WEATHER_NO;
+	
+	
+	 -->
+	<!-- 중분류 카테고리 필요해서 지안이 임시로 만듬 -->
+	<select id="selectMCAllView" parameterType="int" resultType="adminMediumCategoryViewVo">
+		select * from jaMediumCategoryAllView
+		where m_category_no=#{mCategoryNo}
+	</select>
+	
+	
+	
+	
+	
+	<select id="selectLargeCategoryByStoreNo" parameterType="int" resultType="int">
+		select l_category_no from stores
+		where store_No =#{storeNo}
+	</select>
+	
+	
+	<select id="selectAllMCByLC" parameterType="int" resultType="adminMediumCategoryVo">
+		select  * from mediumCategory
+		where l_category_no = #{lCategoryNo}
+	</select>
+	
+	
+	<insert id="insertMainMenu"  parameterType="ownerStoreMainMenuVo" >
+		insert into storeMainMenu (store_no, menu_no,m_category_No)
+		values (#{storeNo}, #{menuNo}, #{mCategoryNo})
+	</insert>
+	
+	
+	<update id="updateMainMenu" parameterType="ownerStoreMainMenuVo">
+		update storeMainMenu
+		set menu_no= #{menuNo} , m_category_no=#{mCategoryNo}
+		where store_no=#{storeNo}
+	</update>
+	
+	
+	
+	<select id="checkDupGroupName" parameterType="map" resultType="int">
+		select count(*) from storeMenuGroup
+		where S_M_GROUP_NAME=#{sMGroupName} and store_no=#{storeNo}
+	</select>
+	
+	
+	<select id="checkDupMenuName" parameterType="map" resultType="int">
+		select count(*) from jaMenuAllview
+		where menu_name=#{menuName} and s_M_Group_No =#{sMGroupNo} and store_no=#{storeNo}
+	</select>
+	
+	<select id="selectOptionAllByMenuNo" parameterType="map" resultType="ownerMenuOptionVo">
+		select * from menuOption
+		where menu_no = #{menuNo} and o_rank_no = #{oRankNo}
+	</select>
+	
+	
+	<select id="selectOptionRankAll" resultType="ownerOptionRankVo">
+		select * from optionRank
+		order by o_rank_no
+	</select>
+	
+	
+	
+	
+<!-- 	<parameterMap type="map" id="checkOptionName">
+		<parameter property="oRankNo" javaType="int" jdbcType="BIGINT" mode="IN"/>
+		<parameter property="menuNo" javaType="int" jdbcType="BIGINT" mode="IN"/>
+	</parameterMap>
+	 -->
+	<select id="checkOptionName" parameterType="map" resultType="int" >
+		select count(*) from menuOption
+		where m_option_name=#{mOptionName} and o_Rank_No=#{oRankNo} and menu_no=#{menuNo} 
+	</select>
+	
+	
+	<insert id="insertOption"  parameterType="ownerMenuOptionVo" >
+		<selectKey keyProperty="mOptionNo" resultType="int" order="BEFORE">
+			select MENUOPTION_SEQ.nextval from dual
+		</selectKey>
+		insert into menuOption (m_option_no, m_option_name,m_option_price, menu_no,o_rank_no)
+		values (#{mOptionNo}, #{mOptionName}, #{mOptionPrice}, #{menuNo},#{oRankNo})
+	</insert>
+	
+	
+	<select id="selectOptionByOptionNo" parameterType="int" resultType="ownerMenuOptionVo" > 
+		select * from menuOption
+		where m_option_no =#{mOptionNo}
+	</select>
+	
+	<update id="updateOption" parameterType="ownerMenuOptionVo">
+			update menuOption
+			set m_option_name=#{mOptionName}, m_option_price=#{mOptionPrice}, o_rank_no=#{oRankNo}
+			where m_option_no =#{mOptionNo}
+	</update>
+	
+	<delete id="deleteOption" parameterType="int">
+		delete menuOption
+		where m_option_No=#{moptionNo}
+	</delete>
+	
+</mapper>

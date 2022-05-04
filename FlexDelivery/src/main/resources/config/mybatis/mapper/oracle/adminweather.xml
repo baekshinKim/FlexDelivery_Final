@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.adminweather">
+
+	<select id="selectAll" parameterType="adminWeatherVo" resultType="adminWeatherVo">
+		select WEATHER_NO, WEATHER_NAME from WEATHER
+		order by WEATHER_NO desc
+	</select>
+	
+	<select id="selectAll2" parameterType="adminMediumCategoryViewVo" resultType="adminMediumCategoryViewVo">
+		select w.WEATHER_NO, w.WEATHER_NAME, count(m.WEATHER_NO) as W_COUNT
+		from WEATHER w left join MEDIUMCATEGORY m
+		on w.WEATHER_NO=m.WEATHER_NO
+		group by w.WEATHER_NO, w.WEATHER_NAME
+		order by w.WEATHER_NO desc
+	</select>
+	
+	<select id="checkDu" parameterType="string" resultType="int">
+		select count(WEATHER_NAME) from WEATHER
+		where WEATHER_NAME like #{weatherName}
+	</select>
+	
+	<insert id="insertWeather" parameterType="adminWeatherVo" >
+		<selectKey keyProperty="weatherNo" resultType="int" order="BEFORE">
+			select weather_seq.nextval from dual
+		</selectKey>
+		insert into WEATHER(WEATHER_NO, WEATHER_NAME)
+		values(#{weatherNo}, #{weatherName})
+	</insert>
+	
+	<update id="updateWeather" parameterType="adminWeatherVo">
+		update WEATHER
+		set WEATHER_NAME=#{weatherName}
+		where WEATHER_NO=#{weatherNo}
+	</update>
+	
+	<delete id="deleteWeather" parameterType="adminWeatherVo">
+		delete from WEATHER
+		where WEATHER_NO=#{weatherNo}
+	</delete>
+	
+</mapper>

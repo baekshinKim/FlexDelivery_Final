@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.ownercoupon">
+
+	<select id="Allcoupons" parameterType="ownerCouponSearchVo" resultType="map">
+		select *
+		from
+		(
+		    select A.*, rownum as RNUM
+		    from
+		    (
+		    	
+		        select B.*  from 
+                (
+                     select r.R_COUPON_DC,r.R_COUPON_MIN, c.*
+                    from REGULARCOUPON r full outer join STORECOUPONBOX c
+                    on r.R_COUPON_NO=c.R_COUPON_NO
+                )B
+				 where STORE_NO=#{storeNo} and s_c_service='N'
+				 <![CDATA[
+				and S_C_START_DATE >= #{startDay} and
+				S_C_START_DATE < to_date(#{endDay})+1
+				]]>
+                 order by S_C_START_DATE desc, R_COUPON_NO asc
+			
+		    )A
+		)
+	<![CDATA[
+		where RNUM > #{firstRecordIndex} 
+		and RNUM <= #{firstRecordIndex} + #{recordCountPerPage}
+		]]>
+	</select>
+
+	<select id="getTotalRecord" parameterType="ownerCouponSearchVo" resultType="int">
+		select count(*) from STORECOUPONBOX
+		<![CDATA[
+		where S_C_START_DATE >= #{startDay} and
+		S_C_START_DATE < to_date(#{endDay})+1
+		]]>
+		and store_no=#{storeNo}
+	</select>
+	
+	<select id="YesCoupon" parameterType="int" resultType="map">
+		select r.R_COUPON_DC,r.R_COUPON_MIN, c.*
+        from REGULARCOUPON r  join STORECOUPONBOX c
+         on r.R_COUPON_NO=c.R_COUPON_NO
+         <![CDATA[
+         where store_no=#{storeNo} and s_c_end_date >= sysdate
+         	]]>
+         order by S_C_BOX_NO desc
+	</select>
+	
+	<select id="Allselect" resultType="adminRegularCouponVo">
+		select * from REGULARCOUPON  
+	</select>
+	
+	<insert id="registerCoupon" parameterType="ownerCouponVo">
+		<selectKey keyProperty="scBoxNo" resultType="int" order="BEFORE">
+			select STORECOUPONBOX_seq.nextval from dual
+		</selectKey>
+			insert into STORECOUPONBOX(S_C_BOX_NO, R_COUPON_NO, STORE_NO,S_C_SERVICE, S_C_END_DATE)
+		 <![CDATA[
+			values(#{scBoxNo},#{rCouponNo},#{storeNo},'Y',sysdate+14)
+			]]>
+	</insert>
+	
+	<update id="deleteCoupon" parameterType="int">
+		update storeCouponBox
+		 set s_c_service='N'
+		where  s_c_box_no=#{scBoxNo} and S_C_END_DATE != sysdate
+	</update>
+	
+	<update id="updateCoupon" parameterType="int">
+		update storeCouponBox
+		 set s_c_service='Y'
+		where  s_c_box_no=#{scBoxNo} and S_C_END_DATE != sysdate
+	</update>
+	
+	<select id="dupCouponNo" parameterType="ownerCouponVo" resultType="int">
+		select count(*) from STORECOUPONBOX
+		where store_no=#{storeNo} and R_COUPON_NO=#{rCouponNo} and S_C_END_DATE > sysdate
+	</select>
+	
+	<select id="expireAll" parameterType="int" resultType="map">
+		select r.R_COUPON_DC,r.R_COUPON_MIN, c.*
+        from REGULARCOUPON r  join STORECOUPONBOX c
+         on r.R_COUPON_NO=c.R_COUPON_NO
+          <![CDATA[
+		where s_c_end_date < sysdate and store_no=#{storeNo}
+			]]>
+		order by S_C_BOX_NO desc
+	</select>
+	
+</mapper>
